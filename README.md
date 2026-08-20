@@ -49,7 +49,7 @@ npx @vscode/test-web --extensionDevelopmentPath=. --esm <対象フォルダ>
 
 ```sh
 npx @vscode/vsce package
-code --install-extension plantuml-web-0.0.1.vsix
+code --install-extension plantuml-web-0.1.0.vsix
 ```
 
 ## 設計

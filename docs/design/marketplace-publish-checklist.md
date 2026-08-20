@@ -52,7 +52,7 @@ npx vsce login <publisher-id>
 ```sh
 npx vsce publish
 # または特定バージョンを明示する場合
-npx vsce publish 0.0.1
+npx vsce publish 0.1.0
 ```
 
 - [ ] 実行前に、`package.json` の `version` がSemantic Versioningに沿っているか確認
