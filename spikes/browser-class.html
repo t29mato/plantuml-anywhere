@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>spike</title></head>
+<body>
+<div id="out">loading...</div>
+<script src="./node_modules/@plantuml/core/viz-global.js"></script>
+<script type="module">
+  import { renderToString } from "./node_modules/@plantuml/core/plantuml.js";
+
+  const puml = [
+    "@startuml",
+    "class Animal {",
+    "  +name: String",
+    "  +makeSound()",
+    "}",
+    "class Dog {",
+    "  +bark()",
+    "}",
+    "class Engine {",
+    "  +horsepower: int",
+    "}",
+    "Animal <|-- Dog",
+    "Dog *-- Engine",
+    "@enduml",
+  ];
+
+  renderToString(
+    puml,
+    (svg) => {
+      window.__SPIKE_RESULT__ = { ok: true, svg };
+      document.getElementById("out").innerHTML = svg;
+    },
+    (err) => {
+      window.__SPIKE_RESULT__ = { ok: false, error: String(err) };
+      document.getElementById("out").textContent = "ERROR: " + err;
+    }
+  );
+</script>
+</body>
+</html>
