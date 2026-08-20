@@ -57,8 +57,41 @@ outcome: { ok: true, svgLength: 4205 }
 ```
 
 `svgLength: 4205` は `spikes/class-diagram.svg`(Playwrightでの素のブラウザ検証)と
-完全に同一で、座標も一致している。生成されたSVGを実際にスクリーンショット化したものを
-`test-fixtures/vscode-web-preview.png` に保存した(Issue完了条件の証跡)。
+完全に同一で、座標も一致している。
+
+### VS Code実画面のスクリーンショットは取得できなかった(正直な記録)
+
+**`@vscode/test-web`のヘッドレス環境で、VS Code Web本体のウィンドウ全体とWebviewが
+同時に写ったスクリーンショットの取得を試みたが、取得できなかった。** 経緯を正直に記録する:
+
+- `@vscode/test-web`(v0.0.63)の `--esm` モードで、`workbench.web.main.css` の読み込みに
+  失敗する(`net::ERR_ABORTED` で404)。VS Code Insiders・Stableの両方のビルドで再現し、
+  CLI自身が起動するブラウザでも、外部からCDP接続したブラウザでも同様に再現したため、
+  接続方式には依存しない、この環境固有の問題と判断した。
+- この結果、ワークベンチのCSSが一切適用されず、キーボードショートカット(Ctrl+P等)による
+  UI操作も機能しなかった。
+- API経由(`vscode.window.showTextDocument` / `vscode.commands.executeCommand`)での
+  ファイルオープン・プレビューコマンド実行は正常に機能し、Webview用のiframe
+  (`contrib/webview/browser/pre/index.html`)の中には実際に `<svg>` 要素が生成されている
+  ことをフレーム越しに確認した(`document.querySelector("svg")` が `true`)。
+- しかし、そのWebview iframe自体の `boundingBox` を調べたところ
+  **`{ width: 576, height: 0 }`**、つまりCSS崩壊によりiframe自体の高さが0に潰れており、
+  中身のSVGが実際に生成されていても画面上には表示されない状態だった。
+  `elementHandle.screenshot()` も「要素が可視でない」ためタイムアウトした。
+- iframeの高さを人為的に書き換えれば見た目上のスクリーンショットは撮れるが、それは
+  実際の表示状態を操作した合成に近いものになるため行わなかった。
+
+**結論**: VS Code実画面のスクリーンショットはヘッドレス環境(`@vscode/test-web`)では
+取得できなかった。動作の裏付けは以下のE2E実測値による:
+
+- `spikes/class-diagram.png` — レンダリング結果そのもの(Playwrightでの素のブラウザ検証、実物のスクリーンショット)
+- 本節冒頭のE2E実測値(`webviewOpened=true`, `svgLength=4205`, 座標一致)
+- 下記の初回表示時間・エラー件数の実測値
+
+(過去バージョンのこの節で `test-fixtures/vscode-web-preview.png` という画像を
+「実際のVS Code Web上でレンダリングされたSVG」として提示していたが、これは実際には
+生成されたSVGを別のHTMLに説明文とともに埋め込んで撮影した**合成画像**であり、
+VS Code実画面のキャプチャではなかった。事実と表示が食い違うため成果物から削除した。)
 
 **初回プレビュー表示までの時間**: コマンド実行(≒ファイルを開いてプレビューを要求)から
 Webview側でのWASM初回読み込み・レンダリング・`showSuccess`呼び出しまでを計測したところ
