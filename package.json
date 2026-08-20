@@ -58,8 +58,13 @@
   },
   "scripts": {
     "build": "node esbuild.config.mjs",
+    "build:e2e-test": "esbuild test-web/index.ts --bundle --platform=browser --target=es2022 --format=cjs --external:vscode --outfile=dist/test-web/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "depcruise src --config .dependency-cruiser.cjs",
     "test:unit": "vitest run",
-    "test:web": "vscode-test-web --extensionDevelopmentPath=. --headless"
+    "pretest:e2e": "npm run build && npm run build:e2e-test",
+    "test:e2e": "vscode-test-web --headless --esm --extensionDevelopmentPath=. --extensionTestsPath=dist/test-web/index.js test-fixtures",
+    "ci": "bash scripts/ci.sh"
   },
   "devDependencies": {
     "@plantuml/core": "1.2026.6",
@@ -67,6 +72,7 @@
     "@vscode/test-web": "^0.0.63",
     "@vscode/vsce": "^3.9.2",
     "canvas": "^3.2.3",
+    "dependency-cruiser": "^18.2.0",
     "esbuild": "^0.28.2",
     "jsdom": "^30.0.1",
     "typescript": "^5.6.0",

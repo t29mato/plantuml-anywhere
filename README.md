@@ -14,8 +14,17 @@
 
 本拡張機能は `@plantuml/core`(PlantUMLエンジンをTeaVMでJavaScriptに、レイアウトエンジン(Graphviz)をWASMにコンパイルしたもの、MITライセンス)を使い、レンダリングをブラウザ内で完結させます。ファイルの内容がサーバーに送信されることはありません。
 
-- **デスクトップ版VS Code・vscode.dev・github.dev すべてで同じ拡張機能がそのまま動作**します(`package.json` の `browser` エントリのみ。`main` エントリは不要。実機検証済み: [`docs/design/vsix-install-verification.md`](docs/design/vsix-install-verification.md))。
+- **Web Extension として構成**しているため、デスクトップ版VS Code・ブラウザ版VS Code(vscode.dev / github.dev)いずれでも動作する設計です(`package.json` の `browser` エントリのみ。`main` エントリは不要)。
 - パッケージサイズは圧縮後 **1.94MB** と軽量です。
+
+### 検証状況(正直な現状)
+
+「github.dev でも動く」という主張の裏付けとして、現時点で確認できているものと、まだ確認できていないものを区別して明記します:
+
+- ✅ **デスクトップ版VS Code**への `.vsix` 実インストールで動作確認済み(実測・エラー0件。[`docs/design/vsix-install-verification.md`](docs/design/vsix-install-verification.md))
+- ✅ **ブラウザ版VS Code**(`@vscode/test-web` によるローカルのヘッドレス実行)での動作確認済み(Webview経由のWASMレンダリング成功。[`docs/design/step2-vscode-extension-design.md`](docs/design/step2-vscode-extension-design.md))
+- ⚠️ **実際の github.dev / vscode.dev 上での動作確認はまだ行っていません。** VS Code Web Extensionは sideload(ローカルの `.vsix` を直接読み込む形でのインストール)ができない仕組みのため、github.dev / vscode.dev で試すには一度 Marketplace に公開する必要があります。「Web Extensionとして構成しているので github.dev で動く設計になっている」ことと、「実際の github.dev で動作確認した」ことは異なる、という点を正直に区別しておきます。
+- 📋 Marketplace公開後、最初に行う作業として github.dev 上での実機確認を予定しています。
 
 ## 使い方
 

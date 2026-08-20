@@ -67,6 +67,18 @@ npx vsce publish 0.0.1
 - [ ] Marketplaceページ([https://marketplace.visualstudio.com/items?itemName=<publisher>.plantuml-web](https://marketplace.visualstudio.com/items)) が正しく表示されるか確認
 - [ ] README内の画像(`spikes/class-diagram.png`)が正しく表示されるか確認
 - [ ] 実際に `code --install-extension <publisher>.plantuml-web` でインストールし、動作確認する
+- [ ] **github.dev / vscode.dev 上で実際に拡張機能をインストールし、`.puml` を開いてプレビューが表示されるか確認する。**
+      sideloadができないため、これがWeb Extensionとしての最初の実機確認になる
+      (「Web Extensionとして構成しているので動く設計」と「実際にgithub.devで確認した」は
+      異なるため。README「検証状況」セクション参照)。確認できたらREADMEの検証状況を更新する。
+
+## Publisher差し替えについて(補足・再確認)
+
+上記「3. VS Code Marketplace Publisherの作成」のとおり、現在の `package.json` の
+`publisher: "plantuml-web-poc"` は実在しないプレースホルダーである。実際のPublisher作成は
+人間(オーナー)の作業であり、ワーカー側では作成しない。**Publisher作成後、
+そのIDと `package.json` の `publisher` フィールドが一致していることを公開前に必ず確認し、
+一致しない場合はここで `publisher` フィールドを実際に取得したIDへ差し替えること。**
 
 ## 参考: CLAUDE.mdの関連ルール(再掲)
 

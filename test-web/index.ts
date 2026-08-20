@@ -1,66 +1,66 @@
 import * as vscode from "vscode";
 
 /**
- * @vscode/test-web の extensionTestsPath から実行される。
+ * @vscode/test-web の extensionTestsPath から実行される回帰テスト。
  * VS Code拡張ホスト(Web版 = ブラウザ内Web Worker)の中で本物の拡張を動かし、
- * .pumlファイルを開いたときにWebview側(実DOM)でWASMレンダリングが成功するかを
- * 実機確認する(docs/design/step2-vscode-extension-design.md 参照)。
+ * 完了条件(拡張が有効化される/Webviewが開く/SVGが生成される)をアサーションで検証する。
+ * いずれかが満たされない場合は例外を投げ、@vscode/test-web のプロセスを非ゼロ終了させる
+ * (CIで機械的にPASS/FAILを判定できるようにするため。npm run test:e2e / scripts/ci.sh 参照)。
  *
- * 拡張ホスト自体には window が無く @plantuml/core を直接呼べないことが判明したため
- * (このファイルの旧バージョンで発覚)、レンダリングはWebview側で行う設計に変更済み。
- * このテストでは実際のコマンド実行結果(WebviewPreviewPresenterがExtensionMode.Testの
- * ときだけ書き出すtest-preview-outcome.json)を読んで判定する。
+ * 拡張ホスト自体には window が無く @plantuml/core を直接呼べないため
+ * (docs/design/step2-vscode-extension-design.md 参照)、レンダリングはWebview側で行い、
+ * その結果は WebviewPreviewPresenter が ExtensionMode.Test のときだけ書き出す
+ * test-preview-outcome.json を読んで検証する。
  */
+const EXTENSION_ID = "plantuml-web-poc.plantuml-web";
+const EXPECTED_SVG_MARKERS = ["<svg", "Animal", "Dog", "Engine"];
+
 export async function run(): Promise<void> {
-  const result: Record<string, unknown> = {};
   const t0 = performance.now();
-
-  try {
-    const folders = vscode.workspace.workspaceFolders;
-    if (!folders || folders.length === 0) {
-      throw new Error("no workspace folder");
-    }
-    const fileUri = vscode.Uri.joinPath(folders[0].uri, "sample.puml");
-    const doc = await vscode.workspace.openTextDocument(fileUri);
-    await vscode.window.showTextDocument(doc);
-
-    result.languageId = doc.languageId;
-    const ext = vscode.extensions.getExtension("plantuml-web-poc.plantuml-web");
-    result.extensionFound = !!ext;
-    result.extensionActiveBeforeCommand = ext?.isActive;
-
-    // 自動プレビュー(onDidOpenTextDocument)を待つが、念のためコマンドも明示実行して
-    // 「言語ID自動検出の問題」と「コマンド自体の問題」を切り分ける。
-    await vscode.commands.executeCommand("plantuml-web.preview");
-    result.extensionActiveAfterCommand = ext?.isActive;
-
-    // onDidOpenTextDocument → ShowPreviewUseCase → WebviewへのpostMessage往復 →
-    // WebviewPreviewPresenter.showSuccess/showError の完了を待つ。
-    const outcomeUri = vscode.Uri.joinPath(folders[0].uri, "test-preview-outcome.json");
-    const outcome = await waitForFile(outcomeUri, 15000);
-    result.outcome = outcome ? JSON.parse(new TextDecoder().decode(outcome)) : null;
-    // コマンド実行(≒プレビュー要求)から、Webview側のpostMessage往復を経て
-    // showSuccess/showErrorが呼ばれるまでの所要時間(ミリ秒)。
-    // WASM(webview-runtime.js, 約7.5MB)の初回読み込み+レンダリング時間を含む。
-    result.previewLatencyMs = Math.round(performance.now() - t0);
-
-    result.webviewOpened = vscode.window.tabGroups.all
-      .flatMap((g) => g.tabs)
-      .some((tab) => tab.input instanceof vscode.TabInputWebview);
-  } catch (e) {
-    result.exception = e instanceof Error ? e.message + "\n" + e.stack : String(e);
-  }
-
   const folders = vscode.workspace.workspaceFolders;
-  if (folders && folders.length > 0) {
-    const outUri = vscode.Uri.joinPath(folders[0].uri, "test-web-result.json");
-    await vscode.workspace.fs.writeFile(
-      outUri,
-      new TextEncoder().encode(JSON.stringify(result, null, 2))
-    );
+  assert(!!folders && folders.length > 0, "no workspace folder");
+  const folder = folders![0];
+
+  const fileUri = vscode.Uri.joinPath(folder.uri, "sample.puml");
+  const doc = await vscode.workspace.openTextDocument(fileUri);
+  await vscode.window.showTextDocument(doc);
+  assert(doc.languageId === "plantuml", `expected languageId 'plantuml', got '${doc.languageId}'`);
+
+  const ext = vscode.extensions.getExtension(EXTENSION_ID);
+  assert(!!ext, `extension '${EXTENSION_ID}' not found`);
+
+  await vscode.commands.executeCommand("plantuml-web.preview");
+  assert(!!ext!.isActive, "extension did not activate after running the preview command");
+
+  // onDidOpenTextDocument/コマンド → ShowPreviewUseCase → WebviewへのpostMessage往復 →
+  // WebviewPreviewPresenter.showSuccess/showError の完了を待つ。
+  const outcomeUri = vscode.Uri.joinPath(folder.uri, "test-preview-outcome.json");
+  const outcomeBytes = await waitForFile(outcomeUri, 15000);
+  assert(!!outcomeBytes, "timed out waiting for test-preview-outcome.json");
+  const outcome = JSON.parse(new TextDecoder().decode(outcomeBytes));
+  const previewLatencyMs = Math.round(performance.now() - t0);
+
+  assert(outcome.ok === true, `preview did not succeed: ${JSON.stringify(outcome)}`);
+  assert(typeof outcome.svg === "string" && outcome.svg.length > 0, "outcome.svg is empty");
+  for (const marker of EXPECTED_SVG_MARKERS) {
+    assert(outcome.svg.includes(marker), `svg missing expected marker '${marker}'`);
   }
 
-  console.log("[test-web] result:", JSON.stringify(result));
+  const webviewOpened = vscode.window.tabGroups.all
+    .flatMap((g) => g.tabs)
+    .some((tab) => tab.input instanceof vscode.TabInputWebview);
+  assert(webviewOpened, "no webview tab found after running the preview command");
+
+  console.log(
+    "[e2e] PASS",
+    JSON.stringify({ svgLength: outcome.svg.length, previewLatencyMs, webviewOpened })
+  );
+}
+
+function assert(condition: boolean, message: string): asserts condition {
+  if (!condition) {
+    throw new Error(`[e2e] FAIL: ${message}`);
+  }
 }
 
 async function waitForFile(uri: vscode.Uri, timeoutMs: number): Promise<Uint8Array | undefined> {
