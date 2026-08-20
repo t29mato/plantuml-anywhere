@@ -14,35 +14,60 @@
   レンダリングする。理由: CLAUDE.mdの「.pumlを開くとプレビューが出る、それだけ」という
   スコープを厳密に守るため。将来必要になった場合はステップ3として司令塔に提案する。
 
-## 設計判断: レンダリング(WASM実行)は拡張ホスト側で行う
+## 設計判断(2026-08-20 実機検証により確定): レンダリング(WASM実行)はWebview側で行う
 
-`spike-report.md` の検証結果を踏まえた判断:
+**この節は当初の設計から修正されている。** 当初は「WASMレンダリングは拡張ホスト側
+(Web Worker/Node)で行い、Webviewには計算済みSVG文字列だけを渡す」設計だった
+(WebviewのCSP `wasm-unsafe-eval` 問題を避けるため)。
 
-- VS Code拡張機能の拡張ホストは、Web版ではブラウザ内のWeb Worker、デスクトップ版では
-  Node.jsプロセス上で動く(いずれもWebview=iframeとは別の実行コンテキスト)。
-- `@plantuml/core` の `renderToString()` はDOM不要でSVG文字列を返す関数であり、Web Worker
-  コンテキストでも動作する想定(`document`/`location` 未定義時のフォールバック分岐を
-  スパイクで確認済み。Workerには `location` があるため問題の分岐には入らない)。
-- Webview側はVS Codeが厳格なCSPを課すため、WASM実行(`WebAssembly.instantiate`)には
-  `'wasm-unsafe-eval'` 等の追加許可が必要になる可能性がある(spike-reportの申し送り事項)。
-- そこで **WASMによるレンダリング計算は拡張ホスト側(infrastructure層)で行い、
-  Webviewには計算済みのSVG文字列(ただのテキスト)だけを `postMessage` で渡す**設計とする。
-  これによりWebview側のCSPはWASM実行を許可する必要がなくなり、CSPは
-  `default-src 'none'; style-src {cspSource}; img-src data:;` 程度の最小構成で済む見込み。
-- この判断が実機(`@vscode/test-web`)で成立しない場合(拡張ホストWorkerでWASMが動かない場合)は、
-  設計を更新しWebview側実行+CSP拡張に切り替える。その場合は再度司令塔にレビュー依頼する。
+しかし `@vscode/test-web`(`--esm`, headless, 実際のChromiumで動くVS Code Web)による
+実機検証で、**拡張ホスト(Web Worker)には `window` が存在せず、`@plantuml/core` は
+SVGレイアウト計算に `window`/DOM(テキスト幅計測やSVG `getBBox()` など)を要求するため、
+`ReferenceError: window is not defined` で失敗する**ことが判明した(vitestのjsdom環境で
+先に見つかっていた「クラス図はgetBBoxが必要」という制約と符合する事実で、
+「実DOMが必須」という当初見落としていた要件がここで確定した)。
 
-### デスクトップ版特有の未検証事項
+したがって設計を以下のとおり修正した:
 
-- スパイクではNode上での直接実行(ESM)が `viz-global.js` の
-  `document`/`location` 未定義時フォールバック分岐で `require is not defined` エラーになった
-  (`spike-report.md` 参照)。これは **ESMコンテキストで `require`/`__filename` が
-  存在しない**ことが原因であり、CommonJSとしてバンドルされた拡張(VS Code拡張は通常
-  webpack/esbuildでCommonJS一本にバンドルする)では `require`/`__filename` が存在するため、
-  この分岐に入っても失敗しない可能性が高い。ただし**未実機検証**であり、
-  デスクトップ版の起動確認時(後述テスト方針3)に合わせて確認する。
-  ここで問題が出た場合は、デスクトップ版でも同じくWebview側やWorker Threadでの実行に
-  切り替える設計変更を検討し、司令塔に再レビュー依頼する。
+- **レンダリング(WASM実行)は実DOMを持つWebview側で行う。** 拡張ホスト側の
+  `WebviewMessageRenderer`(`DiagramRenderPort` 実装)は、Webviewパネルに
+  `postMessage` でソースを送り、Webview内で動く `webview-runtime.js`
+  (`@plantuml/core` を含む別バンドル)が実際にレンダリングして結果を
+  `postMessage` で返す、というメッセージ往復方式にした。
+- Webview側のCSPには `script-src {cspSource} 'wasm-unsafe-eval'` が実際に必要で
+  (`WebviewMessageRenderer.buildBootstrapHtml` 参照)、実機でこの設定により
+  WASM実行が成功することを確認した。
+- 最終表示(`WebviewPreviewPresenter`)は従来どおり計算済みSVGを埋め込むだけなので、
+  そちらのCSPは `script-src` を含まない最小構成のままでよい(WASM実行後、
+  同じWebviewパネルの `html` を静的表示用に差し替える)。
+- **副産物として拡張ホスト本体(`dist/extension.js`)から `@plantuml/core` が
+  外れ、7.5MB→8KBに縮小した。** WASM(7.5MB)はWebviewを開いたときだけ遅延ロードされる
+  `dist/webview-runtime.js` に分離されている。起動時間の観点で望ましい副次効果。
+
+### 実機検証結果
+
+`@vscode/test-web --headless --esm` + `--extensionTestsPath` によるE2E確認
+(`test-web/index.ts`)で以下を確認済み:
+
+```
+languageId: "plantuml"
+extensionActiveBeforeCommand: true   (onStartupFinished追加後)
+webviewOpened: true
+outcome: { ok: true, svgLength: 4205 }
+```
+
+`svgLength: 4205` は `spikes/class-diagram.svg`(Playwrightでの素のブラウザ検証)と
+完全に同一で、座標も一致している。生成されたSVGを実際にスクリーンショット化したものを
+`test-fixtures/vscode-web-preview.png` に保存した(Issue完了条件の証跡)。
+
+### 副次的に判明した点: `onDidOpenTextDocument` によるレース
+
+`.puml` を開く操作自体が `activationEvents: ["onLanguage:plantuml"]` の発火条件でもあるため、
+拡張の `activate()` 完了(＝`onDidOpenTextDocument` リスナー登録)より先にイベントが
+発火してしまい、**初回だけ自動プレビューが効かないことがある**(レースコンディション)。
+`activationEvents` に `onStartupFinished` を追加し、拡張を早期にactivateしておくことで
+回避した。Issueの完了条件は「開いてコマンド実行→プレビュー」であり自動オープンは
+必須要件ではないため、コマンド経由のフローは常に問題なく動作する。
 
 ## クラス図
 
@@ -84,18 +109,30 @@ classDiagram
         }
     }
 
-    namespace infrastructure {
+    namespace infrastructure["infrastructure/vscode"] {
         class VsCodeWorkspaceFsSourceReader {
             -uri: DocumentUri
             +read() Promise~DiagramSource~
         }
-        class PlantUmlCoreRenderer {
+        class WebviewPanelProvider {
+            -panel: WebviewPanel
+            +getOrCreate() WebviewPanel
+        }
+        class WebviewMessageRenderer {
+            -panels: WebviewPanelProvider
+            -rendererScriptUri: Uri
             +render(source: DiagramSource) Promise~RenderedSvg~
         }
         class WebviewPreviewPresenter {
-            -panel: WebviewPanel
+            -panels: WebviewPanelProvider
             +showSuccess(svg: RenderedSvg) void
             +showError(error: RenderError) void
+        }
+    }
+
+    namespace webviewRuntime["webview-runtime (Webview内, 実DOM)"] {
+        class PlantUmlCoreRenderer {
+            +render(source: DiagramSource) Promise~RenderedSvg~
         }
     }
 
@@ -109,14 +146,22 @@ classDiagram
     ShowPreviewUseCase --> PreviewPresenterPort
 
     VsCodeWorkspaceFsSourceReader ..|> DiagramSourceReaderPort
-    PlantUmlCoreRenderer ..|> DiagramRenderPort
+    WebviewMessageRenderer ..|> DiagramRenderPort
     WebviewPreviewPresenter ..|> PreviewPresenterPort
+    WebviewMessageRenderer --> WebviewPanelProvider
+    WebviewPreviewPresenter --> WebviewPanelProvider
+    WebviewMessageRenderer ..> PlantUmlCoreRenderer : postMessage往復(Webview内で実行)
 
     ExtensionEntryPoint --> ShowPreviewUseCase : new + inject
     ExtensionEntryPoint --> VsCodeWorkspaceFsSourceReader : new(uri) per document
-    ExtensionEntryPoint --> PlantUmlCoreRenderer : new
+    ExtensionEntryPoint --> WebviewMessageRenderer : new
     ExtensionEntryPoint --> WebviewPreviewPresenter : new
+    ExtensionEntryPoint --> WebviewPanelProvider : new(共有)
 ```
+
+`PlantUmlCoreRenderer` は拡張ホストからは直接呼ばれない(`window` が無く動かないため)。
+`webview-runtime.js` という別バンドルとしてWebviewにのみ読み込まれ、
+`WebviewMessageRenderer` からの `postMessage` を受けて実行される。
 
 `DiagramSourceReaderPort.read()` は引数を取らない設計にした。「何を読むか」はReaderの
 生成時(コンストラクタ)にターゲットごとの手段で解決する(VS Codeは対象 `vscode.Uri` を
@@ -129,25 +174,32 @@ classDiagram
 ```mermaid
 sequenceDiagram
     actor User
-    participant VSCode as VS Code (onDidOpenTextDocument)
+    participant VSCode as VS Code
     participant Ext as ExtensionEntryPoint
     participant UC as ShowPreviewUseCase
     participant Reader as VsCodeWorkspaceFsSourceReader
-    participant Renderer as PlantUmlCoreRenderer
+    participant MsgRenderer as WebviewMessageRenderer
+    participant WV as Webview(実DOM)
+    participant Core as PlantUmlCoreRenderer(webview-runtime.js)
     participant Presenter as WebviewPreviewPresenter
-    participant WV as Webview (iframe)
 
-    User->>VSCode: .puml ファイルを開く
-    VSCode->>Ext: onDidOpenTextDocument(doc)
-    Ext->>Reader: new VsCodeWorkspaceFsSourceReader(doc.uri)
+    User->>VSCode: .puml を開き "PlantUML: Preview" を実行
+    VSCode->>Ext: コマンド実行
+    Ext->>Reader: new VsCodeWorkspaceFsSourceReader(uri)
     Ext->>UC: execute()
     UC->>Reader: read()
     Reader-->>UC: DiagramSource
-    UC->>Renderer: render(source)
-    Note over Renderer: 拡張ホスト(Worker)内で<br/>@plantuml/core.renderToString()を実行
-    Renderer-->>UC: RenderedSvg | RenderError
+    UC->>MsgRenderer: render(source)
+    MsgRenderer->>WV: webview.html = bootstrap<br/>(CSP: script-src 'wasm-unsafe-eval')
+    WV->>MsgRenderer: postMessage({type:"ready"})
+    MsgRenderer->>WV: postMessage({type:"render", lines})
+    WV->>Core: render(source)
+    Note over Core: Webview内(実DOM)で<br/>@plantuml/core(WASM)を実行
+    Core-->>WV: RenderedSvg | RenderError
+    WV->>MsgRenderer: postMessage({type:"render-result", ...})
+    MsgRenderer-->>UC: RenderedSvg | RenderError
     UC->>Presenter: showSuccess(svg) または showError(error)
-    Presenter->>WV: postMessage({ svg })
+    Presenter->>WV: webview.html = 静的SVG埋め込み<br/>(CSPはscript-srcなし)
     WV-->>User: SVGを表示
 ```
 
@@ -157,8 +209,12 @@ sequenceDiagram
   `@plantuml/core` を一切importしない。
 - `application/ShowPreviewUseCase`: `domain/` のPort interfaceのみに依存。`infrastructure/` の
   具象クラス名を一切importしない。
-- `infrastructure/`: `vscode` と `@plantuml/core` への依存はここに閉じ込める。
+- `infrastructure/vscode/`: `vscode` への依存はここに閉じ込める。`@plantuml/core` は
+  ここには置かない(拡張ホストには`window`が無く動かないため)。
   `VsCodeWorkspaceFsSourceReader` は `vscode.workspace.fs.readFile` を使用(Node `fs` 不使用)。
+- `webview-runtime/`(Webview内で動く別バンドル): `@plantuml/core` への依存はここに閉じ込める。
+  `vscode` APIには依存しない(Webview内から直接vscode APIは呼べないため、
+  `acquireVsCodeApi()` 経由のpostMessageのみで拡張ホストとやり取りする)。
 - `extension.ts`(`ExtensionEntryPoint`): 具象クラスをnewしてユースケースに注入するのみ。
   ロジックを持たない。
 

@@ -1,0 +1,63 @@
+{
+  "name": "plantuml-web",
+  "publisher": "plantuml-web-poc",
+  "displayName": "PlantUML Web Preview (PoC)",
+  "description": "Zero-install PlantUML preview for VS Code — no Java, no Graphviz, no server. Works in github.dev.",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualizers"
+  ],
+  "browser": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:plantuml",
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "plantuml",
+        "extensions": [
+          ".puml",
+          ".plantuml"
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "plantuml-web.preview",
+        "title": "PlantUML: Preview"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "plantuml-web.preview",
+          "when": "resourceLangId == plantuml"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "test:unit": "vitest run",
+    "test:web": "vscode-test-web --extensionDevelopmentPath=. --headless"
+  },
+  "devDependencies": {
+    "@plantuml/core": "1.2026.6",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-web": "^0.0.63",
+    "canvas": "^3.2.3",
+    "esbuild": "^0.28.2",
+    "jsdom": "^30.0.1",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "allowScripts": {
+    "canvas@3.2.3": true
+  }
+}

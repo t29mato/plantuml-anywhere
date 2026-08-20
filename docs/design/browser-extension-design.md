@@ -1,3 +1,5 @@
+> **スコープ外・不採用。VS Code Web Extension に注力する方針(2026-08-20 司令塔判断)。** 調査記録として残す。
+
 # 設計: Chrome拡張機能(ローカル `.puml` を `file://` で開くとその場でプレビュー)
 
 - 前提: `docs/design/browser-extension-spike-report.md` で成立確認済み(status: need-review →

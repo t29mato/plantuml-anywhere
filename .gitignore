@@ -2,3 +2,7 @@ node_modules/
 *.pem
 *.crx
 chrome-profile*/
+.vscode-test-web/
+dist/
+test-fixtures/test-web-result.json
+test-fixtures/test-preview-outcome.json
