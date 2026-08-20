@@ -8,15 +8,23 @@
 
 ## 配布ターゲット
 
-**VS Code拡張機能一本(Web版+デスクトップ版)に集中する。** Web版
-(vscode.dev/github.dev等、ブラウザ上で動くVS Code)とデスクトップ版VS Codeの
-**両対応**。`package.json` に `browser` と `main` の両エントリを持つ。
-`.puml` を開くとWebviewにプレビューが出る、という挙動そのものは両ターゲットで共通。
+1. **VS Code拡張機能**: Web版(vscode.dev/github.dev等、ブラウザ上で動くVS Code)と
+   デスクトップ版VS Codeの両対応。`package.json` の `browser` エントリのみで両対応する
+   (デスクトップ版でも自動的にWeb Worker拡張ホストが作られて動作することを実機検証済み。
+   `docs/design/vsix-install-verification.md` 参照)。`.puml` を開くとWebviewにプレビューが
+   出る、という挙動。
+2. **Chrome/Brave拡張機能**(単体、VS Code非依存): `browser-extension/` に実装。ローカルの
+   `.puml`/`.plantuml` ファイルを `file://` で直接開いたときに、その場でプレビュー表示する。
 
-(過去に単体Chrome拡張機能への展開を検討したが、2026-08-20 司令塔判断によりスコープ外・
-不採用とした。「Web Extensionは子プロセスを起動できないため既存の支配的拡張が原理的に
-移植できない」という本企画の勝ち筋そのものとは無関係な展開だったため。調査記録は
-`docs/design/browser-extension-*.md` に残している。)
+   一度(2026-08-20)スコープ外・不採用としたが、2026-08-21 オーナー指示によりスコープ復活
+   (「Brave版を他のマシンからインストールできるようにしてほしい」)。VS Code拡張機能の
+   優先度が下がるわけではない。詳細な設計・実装は `docs/design/browser-extension-design.md`、
+   `docs/design/browser-extension-v2-lazy-loading.md` を参照。
+
+両ターゲットは `src/domain/` `src/application/`(純粋ロジック)を共有し、
+`src/infrastructure/rendering/`(`PlantUmlCoreRenderer`)も共有する。ターゲット固有なのは
+`src/infrastructure/vscode/` `src/infrastructure/browser-extension/` とエントリポイント
+(`src/extension.ts` / `src/browser-extension-renderer/index.ts`)のみ。
 
 ## レイヤー構成(VS Code拡張機能ターゲット)
 
@@ -37,28 +45,39 @@ domain は他のどのレイヤーからも import されない側であり、�
 を使わないため)。`package.json` の `browser`/`main` はビルド後の異なるバンドル(target:
 `webworker` / `node`)を指すが、ビルド設定の話であり、ソースコードのレイヤー構成には影響しない。
 
-## 配布ターゲット別のレイヤー構成(概要)
+## 配布ターゲット別のレイヤー構成(実装どおり)
 
 ```
 src/
-  domain/                    ← 共有。ターゲット非依存の純粋ロジック
-  application/                ← 共有。domainのポートのみに依存するユースケース(ShowPreviewUseCase)
+  domain/                        ← 共有。ターゲット非依存の純粋ロジック
+  application/                    ← 共有。domainのポートのみに依存するユースケース(ShowPreviewUseCase)
   infrastructure/
-    rendering/                 ← 共有。@plantuml/core を呼ぶ DiagramRenderPort 実装
-                                  (PlantUmlCoreRenderer。vscode APIにもDOMにも依存しない。
-                                  ターゲットごとにesbuildで別バンドルされるだけでソースは同一)
-    vscode/                     ← VS Code拡張機能ターゲット専用アダプタ(vscode API依存)
-    browser-extension/           ← Chrome拡張機能ターゲット専用アダプタ(DOM依存)
-  entrypoints/
-    vscode-extension.ts         ← VS Code拡張機能の Composition Root(Web版/デスクトップ版共通)
-    browser-extension/
-      content.ts                 ← Chrome拡張機能 content script の Composition Root
-      background.ts               ← 初回インストール時のオンボーディング案内(任意)
+    rendering/                     ← 共有。@plantuml/core を呼ぶ DiagramRenderPort 実装
+                                      (PlantUmlCoreRenderer。vscode APIにもDOMにも依存しない。
+                                      ターゲットごとにesbuildで別バンドルされるだけでソースは同一)
+    vscode/                         ← VS Code拡張機能ターゲット専用アダプタ(vscode API依存)
+    browser-extension/               ← Chrome拡張機能ターゲット専用アダプタ(DOM依存、vscode非依存)
+  extension.ts                     ← VS Code拡張機能の Composition Root(Web版/デスクトップ版共通)
+  webview-runtime/index.ts          ← VS Code版のWebview側レンダリングランタイム(遅延読み込み)
+  browser-extension-renderer/
+    index.ts                        ← Chrome拡張機能の重量級レンダラの Composition Root
+                                      (browser-extension/dist/renderer.js としてビルドされ、
+                                      content-loader.jsから動的import()で遅延読み込みされる)
+
+browser-extension/                 ← Chrome拡張機能の配布ルート(src/ の外、リポジトリ直下)
+  manifest.json
+  content-loader.js                 ← 軽量ローダー(静的JS、TSビルド対象外)。matchesで
+                                      file:///*.puml, file:///*.plantuml のみに注入を絞り、
+                                      PlantUMLソースらしいときだけ dist/renderer.js を動的import
+  background.js                     ← 初回インストール時のオンボーディング案内
+  onboarding.html
+  icon.png
+  dist/renderer.js                  ← ビルド成果物(esbuild.browser-extension.mjs)
 ```
 
 `domain/` `application/` `infrastructure/rendering/` はどちらのターゲットからも共有される。
 ターゲット固有なのは `infrastructure/vscode/` `infrastructure/browser-extension/` と
-`entrypoints/` のみ。`DiagramSourceReaderPort.read()` `PreviewPresenterPort` は引数の取り方を
+各エントリポイントのみ。`DiagramSourceReaderPort.read()` `PreviewPresenterPort` は引数の取り方を
 ターゲット非依存に設計してあるため(詳細は各ターゲットの設計ドキュメント参照)、
 `application/ShowPreviewUseCase` はコード変更なしで両ターゲットから利用できる。
 

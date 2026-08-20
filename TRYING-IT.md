@@ -75,6 +75,61 @@ npm run try:web
 
 ---
 
+## C. Chrome / Brave 拡張機能で試す
+
+ローカルの `.puml` / `.plantuml` ファイルを `file://` で直接開いたときに、その場で
+プレビューする単体のブラウザ拡張機能です(VS Code不要)。Chrome Web Storeには公開して
+いないため、「パッケージ化されていない拡張機能」として手動で読み込みます。
+
+### 1. 拡張機能を用意する
+
+このリポジトリの [Releases](https://github.com/t29mato/plantuml-web/releases) から
+`plantuml-web-browser-extension-<version>.zip` をダウンロードし、任意の場所に**解凍**
+してください(zipファイルのままでは読み込めません)。
+
+privateリポジトリのため、他マシンからは `gh` (GitHub CLI) で認証済みの状態で取得できます:
+
+```sh
+gh release download --repo t29mato/plantuml-web --pattern "plantuml-web-browser-extension-*.zip"
+unzip plantuml-web-browser-extension-*.zip -d plantuml-web-browser-extension
+```
+
+自分でビルドする場合:
+
+```sh
+npm run package:browser-extension
+```
+(`plantuml-web-browser-extension-<version>.zip` がリポジトリ直下に生成されます。
+拡張機能フォルダそのものは `browser-extension/` です)
+
+### 2. ブラウザに読み込む
+
+1. `chrome://extensions`(Braveの場合は `brave://extensions`)を開く
+2. 右上の「デベロッパーモード」をONにする
+3. 「パッケージ化されていない拡張機能を読み込む」をクリックし、解凍したフォルダ
+   (または `browser-extension/` フォルダ)を選択する
+
+### 3. **重要: ファイルのURLへのアクセスを許可する**
+
+初回インストール時、案内ページが自動的に開きます。**この手順を飛ばすとプレビューが
+一切表示されません**(ブラウザの仕様上、拡張機能はデフォルトで `file://` ページに
+アクセスできないため、手動で許可する必要があります):
+
+1. `chrome://extensions`(または `brave://extensions`)を開く
+2. この拡張機能(PlantUML Local Preview)の「詳細」を開く
+3. 「ファイルのURLへのアクセスを許可する」のトグルをONにする
+
+### 4. `.puml` ファイルを開く
+
+`test-fixtures/sample.puml` をブラウザにドラッグ&ドロップするか、`Ctrl/Cmd+O` で開いて
+ください。その場でクラス図がプレビュー表示されます。
+
+> **無関係なファイルは重くならない**: この拡張機能は `.puml`/`.plantuml` 以外の
+> ローカルファイル(HTML・PDF・画像等)には一切介入しません
+> (`docs/design/browser-extension-v2-lazy-loading.md` 参照)。
+
+---
+
 ## うまく動かないとき
 
 - 既知の制約(ローカル `!include` 非対応、スプライトライブラリ非同梱等)は

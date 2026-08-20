@@ -8,7 +8,7 @@
 
 *(上記は実際にレンダリングされたクラス図の例です)*
 
-**今すぐ手元で試したい方へ**: コピペで動く手順を [`TRYING-IT.md`](TRYING-IT.md) にまとめています(デスクトップ版VS Code・ブラウザ版VS Codeの両方)。
+**今すぐ手元で試したい方へ**: コピペで動く手順を [`TRYING-IT.md`](TRYING-IT.md) にまとめています(デスクトップ版VS Code・ブラウザ版VS Code・Chrome/Brave拡張機能の3通り)。
 
 ## なぜこれが可能か
 
@@ -18,6 +18,7 @@
 
 - **Web Extension として構成**しているため、デスクトップ版VS Code・ブラウザ版VS Code(vscode.dev / github.dev)いずれでも動作する設計です(`package.json` の `browser` エントリのみ。`main` エントリは不要)。
 - パッケージサイズは圧縮後 **1.94MB** と軽量です。
+- VS Code不要で使いたい場合向けに、同じレンダリングエンジンを使った**単体のChrome/Brave拡張機能**(`browser-extension/`)も用意しています。`.puml`ファイルを`file://`で直接開くとその場でプレビューされます。
 
 ### 検証状況(正直な現状)
 
