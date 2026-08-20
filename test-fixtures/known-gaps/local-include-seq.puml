@@ -1,0 +1,4 @@
+@startuml
+!include shared-seq.puml
+Alice -> Bob : hello
+@enduml
