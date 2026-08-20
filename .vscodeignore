@@ -13,6 +13,8 @@ docs/**
 esbuild.config.mjs
 tsconfig.json
 vitest.config.ts
+.dependency-cruiser.cjs
+scripts/**
 *.vsix
 dist/test-web/**
 node_modules/**

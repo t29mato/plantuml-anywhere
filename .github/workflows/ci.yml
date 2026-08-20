@@ -1,0 +1,42 @@
+name: CI
+
+# このリポジトリは現在private運用のためActionsは実行されない(GitHub Actionsの課金制約)。
+# public化した時点で有効になる想定で、あらかじめワークフローを用意しておく
+# (CLAUDE.md「PRはCIが全て通ってからマージする」の実現手段)。
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers (for @vscode/test-web E2E)
+        run: npx playwright install --with-deps chromium
+
+      - name: typecheck
+        run: npm run typecheck
+
+      - name: lint (dependency-cruiser)
+        run: npm run lint
+
+      - name: test:unit
+        run: npm run test:unit
+
+      - name: build (extension host + webview-runtime)
+        run: npm run pretest:e2e
+
+      - name: test:e2e (@vscode/test-web)
+        run: npm run test:e2e
