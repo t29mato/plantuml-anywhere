@@ -13,6 +13,7 @@ import * as vscode from "vscode";
  */
 export async function run(): Promise<void> {
   const result: Record<string, unknown> = {};
+  const t0 = performance.now();
 
   try {
     const folders = vscode.workspace.workspaceFolders;
@@ -38,6 +39,10 @@ export async function run(): Promise<void> {
     const outcomeUri = vscode.Uri.joinPath(folders[0].uri, "test-preview-outcome.json");
     const outcome = await waitForFile(outcomeUri, 15000);
     result.outcome = outcome ? JSON.parse(new TextDecoder().decode(outcome)) : null;
+    // コマンド実行(≒プレビュー要求)から、Webview側のpostMessage往復を経て
+    // showSuccess/showErrorが呼ばれるまでの所要時間(ミリ秒)。
+    // WASM(webview-runtime.js, 約7.5MB)の初回読み込み+レンダリング時間を含む。
+    result.previewLatencyMs = Math.round(performance.now() - t0);
 
     result.webviewOpened = vscode.window.tabGroups.all
       .flatMap((g) => g.tabs)

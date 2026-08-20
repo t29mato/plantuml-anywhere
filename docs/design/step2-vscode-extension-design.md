@@ -60,6 +60,19 @@ outcome: { ok: true, svgLength: 4205 }
 完全に同一で、座標も一致している。生成されたSVGを実際にスクリーンショット化したものを
 `test-fixtures/vscode-web-preview.png` に保存した(Issue完了条件の証跡)。
 
+**初回プレビュー表示までの時間**: コマンド実行(≒ファイルを開いてプレビューを要求)から
+Webview側でのWASM初回読み込み・レンダリング・`showSuccess`呼び出しまでを計測したところ
+**約710ms**だった(`test-web/index.ts` の `previewLatencyMs` 計測値。ポーリング間隔300msの
+誤差を含む概算値)。VS Code Web本体の起動時間は含まない、拡張機能自身の処理時間。
+
+**起動時のエラー・警告**: `@vscode/test-web` のログを確認したところ、拡張機能由来のエラーは
+0件だった。ただし1件、VS Code Web本体の起動シーケンス自身が出す
+`Ignoring the error while validating workspace folder ... ENOPRO: No file system
+provider found` という無害な既知メッセージが毎回再現する(メッセージ自体が
+"Ignoring the error" と明記しており、ワークスペース検証がFSプロバイダ登録より先に
+走ることに起因する@vscode/test-web環境固有のログで、拡張機能のコードには起因しない)。
+正直に記録する: **完全なゼロではないが、拡張機能起因のエラー・警告は0件**。
+
 ### 副次的に判明した点: `onDidOpenTextDocument` によるレース
 
 `.puml` を開く操作自体が `activationEvents: ["onLanguage:plantuml"]` の発火条件でもあるため、
