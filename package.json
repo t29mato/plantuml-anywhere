@@ -67,7 +67,9 @@
     "ci": "bash scripts/ci.sh",
     "prepackage": "npm run build",
     "package": "vsce package",
-    "try:web": "vscode-test-web --esm --extensionDevelopmentPath=. test-fixtures"
+    "try:web": "vscode-test-web --esm --extensionDevelopmentPath=. test-fixtures",
+    "build:browser-extension": "node esbuild.browser-extension.mjs",
+    "package:browser-extension": "bash scripts/package-browser-extension.sh"
   },
   "devDependencies": {
     "@plantuml/core": "1.2026.6",

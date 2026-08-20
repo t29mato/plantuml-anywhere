@@ -11,12 +11,15 @@ test-fixtures/**
 spikes/**
 docs/**
 esbuild.config.mjs
+esbuild.browser-extension.mjs
+browser-extension/**
 tsconfig.json
 vitest.config.ts
 .dependency-cruiser.cjs
 scripts/**
 TRYING-IT.md
 *.vsix
+*.zip
 dist/test-web/**
 node_modules/**
 package-lock.json

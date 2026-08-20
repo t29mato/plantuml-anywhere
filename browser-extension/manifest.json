@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "PlantUML Local Preview (PoC)",
+  "version": "0.1.0",
+  "description": "Preview local .puml/.plantuml files directly in the browser. No server, no upload, no install of Java/Graphviz.",
+  "icons": {
+    "128": "icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["file:///*.puml", "file:///*.plantuml"],
+      "js": ["content-loader.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["dist/renderer.js"],
+      "matches": ["file:///*"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

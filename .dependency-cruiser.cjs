@@ -43,6 +43,16 @@ module.exports = {
       to: { path: "node_modules/@plantuml/core" },
     },
     {
+      name: "infrastructure-browser-extension-must-not-depend-on-vscode-or-plantuml-core",
+      comment:
+        "infrastructure/browser-extension/ はDOM APIにのみ依存する。vscodeには依存しない" +
+        "(Chrome拡張なので当然)。@plantuml/coreも直接importしない(共有のPlantUmlCoreRenderer" +
+        "経由でbrowser-extension-renderer/が組み立てる。docs/design/browser-extension-design.md参照)",
+      severity: "error",
+      from: { path: "^src/infrastructure/browser-extension" },
+      to: { path: "node_modules/(@types/vscode|@plantuml/core)" },
+    },
+    {
       name: "no-circular",
       comment: "循環依存を禁止する",
       severity: "error",
