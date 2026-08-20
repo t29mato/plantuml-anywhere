@@ -64,7 +64,10 @@
     "test:unit": "vitest run",
     "pretest:e2e": "npm run build && npm run build:e2e-test",
     "test:e2e": "vscode-test-web --headless --esm --extensionDevelopmentPath=. --extensionTestsPath=dist/test-web/index.js test-fixtures",
-    "ci": "bash scripts/ci.sh"
+    "ci": "bash scripts/ci.sh",
+    "prepackage": "npm run build",
+    "package": "vsce package",
+    "try:web": "vscode-test-web --esm --extensionDevelopmentPath=. test-fixtures"
   },
   "devDependencies": {
     "@plantuml/core": "1.2026.6",

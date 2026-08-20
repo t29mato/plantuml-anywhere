@@ -8,6 +8,8 @@
 
 *(上記は実際にレンダリングされたクラス図の例です)*
 
+**今すぐ手元で試したい方へ**: コピペで動く手順を [`TRYING-IT.md`](TRYING-IT.md) にまとめています(デスクトップ版VS Code・ブラウザ版VS Codeの両方)。
+
 ## なぜこれが可能か
 
 既存の最大手拡張機能 `jebbs.plantuml`(360万インストール)は、レンダリングにJavaとGraphvizのインストールを必須とします(または外部のPlantUMLサーバーへのネットワーク送信が必要です)。VS Code **Web Extension**(vscode.dev / github.dev のようにブラウザ内で動くVS Code)は子プロセスを起動できないため、この方式は原理的に移植できません。
