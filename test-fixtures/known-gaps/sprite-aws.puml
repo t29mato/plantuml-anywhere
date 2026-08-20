@@ -1,0 +1,5 @@
+@startuml
+!include <awslib/AWSCommon>
+!include <awslib/Compute/EC2>
+EC2(myec2, "Web Server", "t3.micro")
+@enduml
