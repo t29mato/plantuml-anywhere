@@ -83,6 +83,46 @@ VS Code Desktopは、`browser`のみを持つ(`main`を持たない)拡張機能
 この検証用デバッグ計装コードはコミットせず、検証後に `src/extension.ts` から削除して
 本番相当のクリーンな状態に戻した。
 
+## 3. クリーンルーム環境での実インストール検証(2026-08-21追加)
+
+上記の検証は、開発用ワークスペース(このリポジトリ自体)が手元にある状態で行っていた。
+`.vscodeignore` で開発ファイルを除外した結果、**配布物に必要なファイルが誤って
+除外されていないか**は、開発環境の残骸(node_modules・ソース・キャッシュ等)が
+一切ない、まっさらな環境でなければ本当には確認できない。ここが抜けていると
+「インストールしたのに動かない」という最悪の初回体験につながるため、司令塔の指示で
+追加検証した。
+
+### 検証方法
+
+- `--user-data-dir` / `--extensions-dir` に、既存の設定・拡張機能(jebbs.plantuml含む)を
+  一切含まない新規の一時ディレクトリを指定し、他のあらゆる拡張機能・設定から隔離した
+  VS Codeインスタンスを起動した。
+  - **既知の落とし穴**: 最初、セッションのスクラッチパスディレクトリ配下に
+    `user-data-dir` を作ったところ、パスが長すぎてVS Code起動時のIPC用Unixドメイン
+    ソケット(`1.13-main.sock`)の作成が `EINVAL` で失敗し、ウィンドウが一切開かなかった
+    (macOSのUnixソケットパス長制限による)。`/tmp` 直下の短いパスに変更して解決した。
+- `code --list-extensions` で、インストールされている拡張機能が
+  `plantuml-web-poc.plantuml-web` **のみ**であることを確認した(他の拡張機能ゼロ)。
+- **このリポジトリとは完全に無関係な場所**(`/tmp/pw-clean-room/external-workspace/`)に
+  `.puml` ファイルを新規作成し、そのファイルを開いた。
+
+### 結果: 成功。開発環境に一切依存せず動作した
+
+```
+2026-08-20T19:05:11.800Z onDidOpenTextDocument: file:///tmp/pw-clean-room/external-workspace/hello.puml languageId=plantuml
+2026-08-20T19:05:13.145Z showPreview done: file:///tmp/pw-clean-room/external-workspace/hello.puml
+```
+
+ファイルを開いてから約1.3秒で `showPreview done`(エラーなし)。`.vscodeignore` による
+除外設定は正しく、配布に必要なファイル(`dist/extension.js`, `dist/webview-runtime.js`,
+`package.json`, `LICENSE.txt`, `icon.png`, `readme.md`)はすべて `.vsix` に含まれており、
+それ以外に開発用ファイルへの依存は一切ないことが実証された。このログは
+`docs/evidence/clean-room-vsix-install-debug.log` に保存した。
+
+検証用デバッグ計装コードは、今回も検証後に `src/extension.ts` から削除し、
+`npm run ci`(typecheck・lint・test:unit・test:e2e)がすべて通過するクリーンな
+状態に戻したうえで、最終的な `.vsix` を再パッケージングした。
+
 ### VS Code実画面のスクリーンショットについて(未取得、環境制約)
 
 デスクトップ版VS CodeはGUIアプリとして実際に画面上に起動できたが、

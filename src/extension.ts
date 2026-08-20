@@ -16,7 +16,8 @@ import { WebviewPanelProvider } from "./infrastructure/vscode/WebviewPanelProvid
  *
  * `package.json` の `browser` エントリのみ(`main` は持たない)。デスクトップ版VS Codeでも
  * 自動的にWeb Worker拡張ホスト(LocalWebWorker)が作られてこのまま動作することを
- * .vsixの実インストール検証で確認済み(docs/design/vsix-install-verification.md参照)。
+ * .vsixの実インストール検証(通常環境・クリーンルーム環境の両方)で確認済み
+ * (docs/design/vsix-install-verification.md参照)。
  */
 export function activate(context: vscode.ExtensionContext): void {
   const panels = new WebviewPanelProvider(context);
