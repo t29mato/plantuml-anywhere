@@ -10,11 +10,21 @@
     "type": "git",
     "url": "https://github.com/t29mato/plantuml-web.git"
   },
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
     "Visualizers"
+  ],
+  "keywords": [
+    "plantuml",
+    "uml",
+    "diagram",
+    "preview",
+    "web extension",
+    "no-java",
+    "no-graphviz"
   ],
   "browser": "./dist/extension.js",
   "activationEvents": [

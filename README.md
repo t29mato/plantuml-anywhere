@@ -1,8 +1,12 @@
-# plantuml-web
+# PlantUML Web Preview (PoC)
 
 **インストールするだけでPlantUMLが見える。Java不要・Graphviz不要・サーバー不要。github.dev でも動く。**
 
-VS Code拡張機能(Web版・デスクトップ版共通)。`.puml` / `.plantuml` ファイルを開いてコマンドを実行すると、Webviewにクラス図・シーケンス図等のプレビューが表示されます。
+`.puml` / `.plantuml` ファイルを開いてコマンドを実行すると、Webviewにクラス図・シーケンス図等のプレビューが表示されます。追加のランタイムインストールや外部サーバーへの通信は一切不要です。
+
+![class-diagram-example](spikes/class-diagram.png)
+
+*(上記は実際にレンダリングされたクラス図の例です)*
 
 ## なぜこれが可能か
 
@@ -10,7 +14,16 @@ VS Code拡張機能(Web版・デスクトップ版共通)。`.puml` / `.plantuml
 
 本拡張機能は `@plantuml/core`(PlantUMLエンジンをTeaVMでJavaScriptに、レイアウトエンジン(Graphviz)をWASMにコンパイルしたもの、MITライセンス)を使い、レンダリングをブラウザ内で完結させます。ファイルの内容がサーバーに送信されることはありません。
 
-## 使い方(開発版)
+- **デスクトップ版VS Code・vscode.dev・github.dev すべてで同じ拡張機能がそのまま動作**します(`package.json` の `browser` エントリのみ。`main` エントリは不要。実機検証済み: [`docs/design/vsix-install-verification.md`](docs/design/vsix-install-verification.md))。
+- パッケージサイズは圧縮後 **1.94MB** と軽量です。
+
+## 使い方
+
+1. `.puml` または `.plantuml` ファイルを開く
+2. コマンドパレット(`Cmd/Ctrl+Shift+P`)から `PlantUML: Preview` を実行する
+3. 右側にWebviewが開き、プレビューが表示される
+
+## 開発者向け: ソースからビルド・実行する
 
 ```sh
 npm install
@@ -23,7 +36,12 @@ VS Code で本リポジトリを開き、F5(Run Extension)でデバッグ実行�
 npx @vscode/test-web --extensionDevelopmentPath=. --esm <対象フォルダ>
 ```
 
-`.puml` ファイルを開き、コマンドパレットから `PlantUML: Preview` を実行するとプレビューが表示されます。
+`.vsix` パッケージを作ってローカルインストールする場合:
+
+```sh
+npx @vscode/vsce package
+code --install-extension plantuml-web-0.0.1.vsix
+```
 
 ## 設計
 
