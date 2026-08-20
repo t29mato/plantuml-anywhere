@@ -6,3 +6,4 @@ chrome-profile*/
 dist/
 test-fixtures/test-web-result.json
 test-fixtures/test-preview-outcome.json
+*.vsix
