@@ -6,6 +6,10 @@
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/t29mato/plantuml-web.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -51,6 +55,7 @@
     "@plantuml/core": "1.2026.6",
     "@types/vscode": "^1.85.0",
     "@vscode/test-web": "^0.0.63",
+    "@vscode/vsce": "^3.9.2",
     "canvas": "^3.2.3",
     "esbuild": "^0.28.2",
     "jsdom": "^30.0.1",
