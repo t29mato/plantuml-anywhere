@@ -22,7 +22,7 @@ window.addEventListener("message", (event: MessageEvent) => {
   const source = new DiagramSource(message.lines ?? []);
   renderer.render(source).then((result) => {
     if (result instanceof RenderedSvg) {
-      vscodeApi.postMessage({ type: "render-result", ok: true, svg: result.svg });
+      vscodeApi.postMessage({ type: "render-result", ok: true, svg: result.svg, note: result.note });
     } else {
       vscodeApi.postMessage({ type: "render-result", ok: false, error: result.message });
     }
