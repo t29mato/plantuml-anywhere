@@ -29,6 +29,17 @@ const MAX_SHRINK_ATTEMPTS = 3;
  * 超えると "Diagram too large for browser rendering" で失敗する。回避策として、
  * `skinparam defaultFontSize` を使った自動縮小フォールバックを実装している
  * (docs/design/large-diagram-fallback.md参照)。
+ *
+ * 【既知の制約: レンダリング中はメインスレッドをブロックする】
+ * `renderToString`(TeaVMコンパイル済みJavaコード)は同期的に実行され、呼び出し元の
+ * スレッド(このクラスが呼ばれるWebview/ページのメインスレッド)を占有する。これは
+ * @plantuml/core自身のPoC(node_modules/@plantuml/core/github-integration-web-worker-poc.html)
+ * のコメントでも "the engine uses shared state" のため "must serialize renders" し
+ * メインスレッドをブロックすると明記されている既知の制約である。
+ * 巨大な図では1回のrenderToString呼び出しだけで数秒〜数十秒かかることを実機検証で確認済み
+ * (docs/design/large-diagram-fallback.md「巨大図レンダリング中の無応答調査」参照)。
+ * この間、利用者にはプレビューが更新されず固まったように見えるため、呼び出し側
+ * (WebviewMessageRenderer等)でレンダリング中である旨を先に表示する対応を入れている。
  */
 export class PlantUmlCoreRenderer implements DiagramRenderPort {
   async render(source: DiagramSource): Promise<RenderedSvg | RenderError> {
