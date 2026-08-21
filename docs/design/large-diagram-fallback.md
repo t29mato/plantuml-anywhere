@@ -83,6 +83,47 @@ svg.updateSvgSize(dim.getWidth(), dim.getHeight(), scaleFactor);
 
 > 図が大きいため縮小して表示しています(目安 50%、文字サイズ 7px)
 
+## 追加調査: フォントサイズ縮小だけでは足りないケース(nodesep/ranksep)
+
+初回リリース(0.1.1)後、HQから「オーナーが実際に踏んだ `6388x1573` と同等以上の図で
+実ブラウザ表示を証明せよ」という指示を受け、42列×12行(504クラス、913リンク、
+素の座標 `6449x1637`)のグリッド状クラス図(`test-fixtures/huge.puml`)で検証したところ、
+**3回リトライしてもなお `4096` を超過し続ける**(最終 `4390x1420`、約17.4秒)ことが
+判明した。
+
+原因は、この図の形状(多数の小さいノードが横に並ぶグリッド)では、幅の主要因が
+テキスト幅ではなく **Graphvizのノード間隔(`nodesep`)・階層間隔(`ranksep`)という
+固定要素**である点にあった。`defaultFontSize`はテキスト幅・ノードの内側サイズは
+縮小するが、ノード間の余白(デフォルト約10pt相当)は縮小しないため、ノード数が
+多い図では余白の総和が支配的になり、フォントをいくら縮めても収束しなかった。
+
+### 修正
+
+`computeFallbackSpacing()` を追加し、フォントサイズの縮小比率に比例して
+`skinparam nodesep` / `skinparam ranksep` も一緒に注入するよう
+`injectSkinparam()` を拡張した(`src/infrastructure/rendering/tooLargeFallback.ts`)。
+`PlantUmlCoreRenderer.ts` 側のリトライループ自体は変更不要で、`injectSkinparam`の
+出力が変わるだけで自動的に恩恵を受ける。
+
+修正後、同じ504クラスの図が **1回目のリトライ(フォントサイズ8px)で成功**するように
+なった(後述の実機検証を参照)。
+
+### 未解決の調査メモ: 540クラス図でのハング
+
+検証の途中、さらに大きい45列×12行(540クラス、1023リンク、素の座標
+`6911x1637`)の図でBrave拡張が `page.waitForSelector('svg')` で60秒以上
+応答しなくなる事象に遭遇した。プロセス状態は `UN`(uninterruptible sleep)で
+CPU使用率もほぼ0%と、単なる処理の遅さではなく本物のハング/デッドロックに見える
+挙動だった。一方、同じ図を素の Node/Playwright ハーネス(`trace-*.mjs`、拡張の
+パイプラインを経由せず `PlantUmlCoreRenderer` を直接1回だけ呼ぶ)で単発実行すると
+8〜14秒で正常に完了した。
+
+時間の制約上、この個体は深追いせず、目標(オーナー報告値以上)を満たすやや小さい
+504クラスの図に切り替えて検証を完了させたが、**拡張のパイプライン(content script
+経由・複数回のrenderToString呼び出しが絡む経路)特有の何かが影響している可能性が
+あり、未解決のまま**。将来、この規模を超える図で拡張がフリーズする報告があれば、
+まずこの記録を参照すること。
+
 ## 実機検証結果
 
 検証用の横長クラス図(40クラス、素の座標 `5778x96`)を使用。
@@ -105,6 +146,22 @@ svg.updateSvgSize(dim.getWidth(), dim.getHeight(), scaleFactor);
 
 3回の縮小リトライで `45389x80` → `26748x66` まで縮小できたが、それでも上限4096を
 超えるため、最終的に親切なメッセージへ書き換えられている。
+
+## 最終検証: オーナー報告値(`6388x1573`)以上での実機確認
+
+HQからの最終指示に基づき、オーナーが実際に踏んだ `6388x1573` を**幅・高さとも
+上回る**図(`test-fixtures/huge.puml`、42列×12行、504クラス、913リンク、
+素の座標 `6449x1637`)を用意し、nodesep/ranksep対応後のビルドで、VS Code版・
+Brave拡張版の両方について、実バイナリを使った実ブラウザ検証(Playwright CDP)で
+「縮小注記が表示され、SVGが収まって描画される」ことをスクリーンショットで確認した。
+
+| 対象 | 結果 | 証跡 |
+|---|---|---|
+| Brave拡張(実際のBrave Browserバイナリ + `--load-extension`) | ✅ `note: 図が大きいため縮小して表示しています(目安 57%、文字サイズ 8px)` / `viewBox: 0 0 3455 848` | `docs/evidence/brave-huge-diagram.png` |
+| VS Code Desktop(実際のCode.appバイナリ + `--remote-debugging-port`でCDP接続、コマンドパレットから`PlantUML: Preview`を実行) | ✅ 同一の注記・同一のviewBoxで描画(共有ロジックのため同一結果) | `docs/evidence/vscode-huge-diagram.png` |
+
+両方とも、合成ではなく実際のアプリケーション(VS Code Desktop本体 / Brave Browser本体)
+をPlaywrightのCDP経由で操作して撮影した、正真正銘のスクリーンショットである。
 
 ## 単体テスト
 

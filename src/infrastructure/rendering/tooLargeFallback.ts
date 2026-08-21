@@ -24,6 +24,16 @@ const SAFETY_MARGIN = 0.85;
 /** リトライのたびにさらに強める追加の縮小係数 */
 const RETRY_STRENGTHEN_FACTOR = 0.85;
 
+/**
+ * PlantUML/Graphvizのデフォルトのノード間隔(nodesep)・階層間隔(ranksep)の目安値。
+ * 多数の小さいノードが横に並ぶグリッド状の図では、幅の主要因がこの間隔
+ * (フォントサイズに比例しない固定要素)になり、フォントサイズ縮小だけでは
+ * 収まらないケースが実機検証で見つかったため、間隔も一緒に縮小する
+ * (docs/design/large-diagram-fallback.md参照)。
+ */
+const DEFAULT_SPACING = 10;
+const MIN_FALLBACK_SPACING = 2;
+
 export interface TooLargeDimensions {
   width: number;
   height: number;
@@ -56,7 +66,16 @@ export function computeFallbackFontSize(dims: TooLargeDimensions, attempt: numbe
 }
 
 /**
- * PlantUMLソースの `@startuml` 行の直後に `skinparam defaultFontSize` を挿入する。
+ * フォントサイズの縮小率に比例して、ノード間隔(nodesep/ranksep)も計算する。
+ */
+export function computeFallbackSpacing(fontSize: number): number {
+  const ratio = fontSize / DEFAULT_PLANTUML_FONT_SIZE;
+  return Math.max(MIN_FALLBACK_SPACING, Math.round(DEFAULT_SPACING * ratio));
+}
+
+/**
+ * PlantUMLソースの `@startuml` 行の直後に `skinparam defaultFontSize` /
+ * `skinparam nodesep` / `skinparam ranksep` を挿入する。
  * `@startuml` が見つからない場合は元の行をそのまま返す(防御的、通常起きない)。
  */
 export function injectSkinparam(lines: readonly string[], fontSize: number): string[] {
@@ -64,7 +83,14 @@ export function injectSkinparam(lines: readonly string[], fontSize: number): str
   if (index === -1) {
     return Array.from(lines);
   }
+  const spacing = computeFallbackSpacing(fontSize);
   const result = Array.from(lines);
-  result.splice(index + 1, 0, `skinparam defaultFontSize ${fontSize}`);
+  result.splice(
+    index + 1,
+    0,
+    `skinparam defaultFontSize ${fontSize}`,
+    `skinparam nodesep ${spacing}`,
+    `skinparam ranksep ${spacing}`
+  );
   return result;
 }
