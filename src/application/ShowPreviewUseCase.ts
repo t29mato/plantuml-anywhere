@@ -19,6 +19,7 @@ export class ShowPreviewUseCase {
 
   async execute(): Promise<void> {
     const source = await this.reader.read();
+    this.presenter.showLoading();
     const result = await this.renderer.render(source);
     if (result instanceof RenderedSvg) {
       this.presenter.showSuccess(result);

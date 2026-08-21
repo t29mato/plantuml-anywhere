@@ -57,20 +57,33 @@ export class WebviewMessageRenderer implements DiagramRenderPort {
 
   private buildBootstrapHtml(webview: vscode.Webview): string {
     const scriptUri = webview.asWebviewUri(this.rendererScriptUri);
-    // WASM実行(WebAssembly.instantiate)のために 'wasm-unsafe-eval' が必要
+    // WASM実行(WebAssembly.instantiate)のために 'wasm-unsafe-eval' が、
+    // 下記の「レンダリング中…」表示のために 'unsafe-inline' なstyle-srcが必要
     // (docs/design/spike-report.mdの申し送り事項どおり)。
     const csp = [
       "default-src 'none'",
       `script-src ${webview.cspSource} 'wasm-unsafe-eval'`,
+      `style-src ${webview.cspSource} 'unsafe-inline'`,
     ].join("; ");
 
+    // @plantuml/core のレンダリング(renderToString)は同期的にメインスレッドを
+    // ブロックする(数秒〜巨大な図では数十秒)ため、スクリプト読み込み・実行前に
+    // 静的なプレースホルダーを表示しておく。無応答検知自体は解消しないが、
+    // 利用者が「フリーズした」ではなく「処理中」と理解できるようにするための対応
+    // (docs/design/large-diagram-fallback.md「巨大図レンダリング中の無応答調査」参照)。
     return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="${csp}" />
+  <style>
+    body { padding: 8px; }
+    /* --vscode-descriptionForeground が未定義な環境向けにフォールバック色を明示 */
+    .rendering-placeholder { color: var(--vscode-descriptionForeground, #888888); font-size: 0.9em; }
+  </style>
 </head>
 <body>
+  <p class="rendering-placeholder">図をレンダリング中です。図が大きい場合、数秒〜数十秒かかることがあります…</p>
   <script src="${scriptUri}"></script>
 </body>
 </html>`;

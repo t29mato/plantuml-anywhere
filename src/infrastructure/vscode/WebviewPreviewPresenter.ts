@@ -15,6 +15,18 @@ export class WebviewPreviewPresenter implements PreviewPresenterPort {
     private readonly context: vscode.ExtensionContext
   ) {}
 
+  /**
+   * no-op。VS Code版では「レンダリング中…」の表示は
+   * WebviewMessageRenderer.buildBootstrapHtml が担当する(Webviewを開いて
+   * レンダラースクリプトを読み込む処理そのものがRenderer側の責務であり、
+   * そのHTMLに静的なプレースホルダーを含めている)。
+   * ここで別途Webviewを開き直すと、Rendererが開くWebviewと二重に競合するため
+   * 何もしない(docs/design/large-diagram-fallback.md参照)。
+   */
+  showLoading(): void {
+    // no-op
+  }
+
   showSuccess(svg: RenderedSvg): void {
     this.render(svg.svg, false, svg.note);
     this.writeTestOutcomeIfInTestMode({ ok: true, svgLength: svg.svg.length, svg: svg.svg, note: svg.note });

@@ -3,7 +3,7 @@
   "publisher": "plantuml-web-poc",
   "displayName": "PlantUML Web Preview (PoC)",
   "description": "Zero-install PlantUML preview for VS Code — no Java, no Graphviz, no server. Works in github.dev.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "license": "MIT",
   "repository": {

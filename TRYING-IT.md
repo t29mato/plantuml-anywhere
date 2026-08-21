@@ -17,7 +17,7 @@ npm install
 
 ### 1. `.vsix` を用意する
 
-このリポジトリには、すぐ試せるように `.vsix` ファイル(`plantuml-web-0.1.2.vsix`)を
+このリポジトリには、すぐ試せるように `.vsix` ファイル(`plantuml-web-0.1.3.vsix`)を
 同梱しています。**ビルドせずそのまま次のステップに進んで構いません。**
 
 自分でビルドし直したい場合は:
@@ -29,7 +29,7 @@ npm run package
 ### 2. インストールする
 
 ```sh
-code --install-extension plantuml-web-0.1.2.vsix
+code --install-extension plantuml-web-0.1.3.vsix
 ```
 
 ### 3. `.puml` ファイルを開く
