@@ -16,8 +16,8 @@ export class WebviewPreviewPresenter implements PreviewPresenterPort {
   ) {}
 
   showSuccess(svg: RenderedSvg): void {
-    this.render(svg.svg, false);
-    this.writeTestOutcomeIfInTestMode({ ok: true, svgLength: svg.svg.length, svg: svg.svg });
+    this.render(svg.svg, false, svg.note);
+    this.writeTestOutcomeIfInTestMode({ ok: true, svgLength: svg.svg.length, svg: svg.svg, note: svg.note });
   }
 
   showError(error: RenderError): void {
@@ -25,19 +25,20 @@ export class WebviewPreviewPresenter implements PreviewPresenterPort {
     this.writeTestOutcomeIfInTestMode({ ok: false, message: error.message });
   }
 
-  private render(content: string, isError: boolean): void {
+  private render(content: string, isError: boolean, note?: string): void {
     const panel = this.panels.getOrCreate();
-    panel.webview.html = this.buildHtml(panel.webview, content, isError);
+    panel.webview.html = this.buildHtml(panel.webview, content, isError, note);
   }
 
-  private buildHtml(webview: vscode.Webview, content: string, isError: boolean): string {
+  private buildHtml(webview: vscode.Webview, content: string, isError: boolean, note?: string): string {
     const csp = [
       "default-src 'none'",
       `style-src ${webview.cspSource} 'unsafe-inline'`,
       "img-src data:",
     ].join("; ");
 
-    const body = isError ? `<pre class="error">${escapeHtml(content)}</pre>` : content;
+    const noteHtml = note ? `<p class="note">${escapeHtml(note)}</p>` : "";
+    const body = isError ? `<pre class="error">${escapeHtml(content)}</pre>` : `${noteHtml}${content}`;
 
     return `<!DOCTYPE html>
 <html lang="ja">
@@ -47,6 +48,7 @@ export class WebviewPreviewPresenter implements PreviewPresenterPort {
   <style>
     body { padding: 8px; }
     .error { color: var(--vscode-errorForeground); white-space: pre-wrap; }
+    .note { color: var(--vscode-descriptionForeground); font-size: 0.85em; margin: 0 0 8px; }
     svg { max-width: 100%; height: auto; }
   </style>
 </head>

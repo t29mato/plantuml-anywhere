@@ -30,14 +30,14 @@ export class WebviewMessageRenderer implements DiagramRenderPort {
 
     return new Promise((resolve) => {
       const resultSub = panel.webview.onDidReceiveMessage((message: unknown) => {
-        const m = message as { type?: string; ok?: boolean; svg?: string; error?: string };
+        const m = message as { type?: string; ok?: boolean; svg?: string; note?: string; error?: string };
         if (m?.type !== "render-result") {
           return;
         }
         resultSub.dispose();
         readySub.dispose();
         if (m.ok) {
-          resolve(new RenderedSvg(m.svg ?? ""));
+          resolve(new RenderedSvg(m.svg ?? "", m.note));
         } else {
           resolve(new RenderError(m.error ?? "unknown render error"));
         }
