@@ -37,6 +37,15 @@ export class PageDomPresenter implements PreviewPresenterPort {
     }
     const container = document.createElement("div");
     container.id = "plantuml-web-result";
+    // PlantUMLのSVGは黒線・黒文字/透明背景が既定のため、ブラウザがダークテーマの
+    // 場合(file://ページの背景が暗色になる)、線や文字が背景に沈んで見えなくなる
+    // (docs/design/dark-theme-fix.md参照)。図の下に常に白背景を敷いて保証する。
+    // 図自身が skinparam backgroundColor で背景色を指定している場合は、その色が
+    // SVG内部の矩形として描画されるため、このコンテナの白は上から隠れて問題ない。
+    container.style.background = "#ffffff";
+    container.style.display = "inline-block";
+    container.style.padding = "8px";
+    container.style.borderRadius = "4px";
     container.innerHTML = svg.svg;
     document.body.appendChild(container);
   }
