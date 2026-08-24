@@ -50,7 +50,14 @@ export class WebviewPreviewPresenter implements PreviewPresenterPort {
     ].join("; ");
 
     const noteHtml = note ? `<p class="note">${escapeHtml(note)}</p>` : "";
-    const body = isError ? `<pre class="error">${escapeHtml(content)}</pre>` : `${noteHtml}${content}`;
+    // PlantUMLのSVGは黒線・黒文字/透明背景が既定のため、VS Codeのダークテーマでは
+    // Webviewの背景色(--vscode-editor-background相当)に線や文字が沈んで見えなく
+    // なる(docs/design/dark-theme-fix.md参照)。図の下に常に白いカードを敷いて
+    // 保証する(図自身が skinparam backgroundColor を指定していれば、その色が
+    // SVG内部の矩形として描画されるため、このカードの白は隠れて問題ない)。
+    const body = isError
+      ? `<pre class="error">${escapeHtml(content)}</pre>`
+      : `${noteHtml}<div class="svg-container">${content}</div>`;
 
     return `<!DOCTYPE html>
 <html lang="ja">
@@ -61,6 +68,12 @@ export class WebviewPreviewPresenter implements PreviewPresenterPort {
     body { padding: 8px; }
     .error { color: var(--vscode-errorForeground); white-space: pre-wrap; }
     .note { color: var(--vscode-descriptionForeground); font-size: 0.85em; margin: 0 0 8px; }
+    .svg-container {
+      display: inline-block;
+      background: #ffffff;
+      padding: 8px;
+      border-radius: 4px;
+    }
     svg { max-width: 100%; height: auto; }
   </style>
 </head>
