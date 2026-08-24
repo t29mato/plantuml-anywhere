@@ -1,14 +1,14 @@
 {
-  "name": "plantuml-web",
-  "publisher": "plantuml-web-poc",
-  "displayName": "PlantUML Web Preview (PoC)",
-  "description": "Zero-install PlantUML preview for VS Code — no Java, no Graphviz, no server. Works in github.dev.",
-  "version": "0.1.4",
+  "name": "plantuml-anywhere",
+  "publisher": "plantuml-anywhere-poc",
+  "displayName": "PlantUML Anywhere (PoC)",
+  "description": "Zero-install PlantUML preview that works anywhere — desktop VS Code, github.dev/vscode.dev, and standalone in the browser. No Java, no Graphviz, no server.",
+  "version": "0.2.0",
   "private": true,
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/t29mato/plantuml-web.git"
+    "url": "https://github.com/t29mato/plantuml-anywhere.git"
   },
   "icon": "icon.png",
   "engines": {
@@ -43,14 +43,14 @@
     ],
     "commands": [
       {
-        "command": "plantuml-web.preview",
+        "command": "plantuml-anywhere.preview",
         "title": "PlantUML: Preview"
       }
     ],
     "menus": {
       "commandPalette": [
         {
-          "command": "plantuml-web.preview",
+          "command": "plantuml-anywhere.preview",
           "when": "resourceLangId == plantuml"
         }
       ]

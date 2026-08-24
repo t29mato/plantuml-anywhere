@@ -16,7 +16,7 @@ export class PageDomPresenter implements PreviewPresenterPort {
   showLoading(): void {
     document.title = "PlantUML Preview (rendering...)";
     const placeholder = document.createElement("p");
-    placeholder.id = "plantuml-web-loading";
+    placeholder.id = "plantuml-anywhere-loading";
     placeholder.style.color = "#666";
     placeholder.style.font = "12px sans-serif";
     placeholder.textContent =
@@ -29,14 +29,14 @@ export class PageDomPresenter implements PreviewPresenterPort {
     document.body.innerHTML = "";
     if (svg.note) {
       const note = document.createElement("p");
-      note.id = "plantuml-web-note";
+      note.id = "plantuml-anywhere-note";
       note.style.color = "#666";
       note.style.font = "12px sans-serif";
       note.textContent = svg.note;
       document.body.appendChild(note);
     }
     const container = document.createElement("div");
-    container.id = "plantuml-web-result";
+    container.id = "plantuml-anywhere-result";
     // PlantUMLのSVGは黒線・黒文字/透明背景が既定のため、ブラウザがダークテーマの
     // 場合(file://ページの背景が暗色になる)、線や文字が背景に沈んで見えなくなる
     // (docs/design/dark-theme-fix.md参照)。図の下に常に白背景を敷いて保証する。
@@ -51,9 +51,9 @@ export class PageDomPresenter implements PreviewPresenterPort {
   }
 
   showError(error: RenderError): void {
-    document.getElementById("plantuml-web-loading")?.remove();
+    document.getElementById("plantuml-anywhere-loading")?.remove();
     const marker = document.createElement("pre");
-    marker.id = "plantuml-web-error";
+    marker.id = "plantuml-anywhere-error";
     marker.style.color = "red";
     marker.style.whiteSpace = "pre-wrap";
     marker.textContent = "PlantUML render error: " + error.message;

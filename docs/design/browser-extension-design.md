@@ -192,7 +192,7 @@ sequenceDiagram
 ```json
 {
   "manifest_version": 3,
-  "name": "PlantUML Local Preview",
+  "name": "PlantUML Anywhere",
   "version": "0.0.1",
   "description": "ローカルの.pumlファイルをブラウザだけでその場プレビュー。サーバー送信なし。",
   "content_scripts": [

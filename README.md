@@ -1,4 +1,4 @@
-# PlantUML Web Preview (PoC)
+# PlantUML Anywhere (PoC)
 
 **インストールするだけでPlantUMLが見える。Java不要・Graphviz不要・サーバー不要。github.dev でも動く。**
 
@@ -52,7 +52,7 @@ npx @vscode/test-web --extensionDevelopmentPath=. --esm <対象フォルダ>
 
 ```sh
 npx @vscode/vsce package
-code --install-extension plantuml-web-0.1.4.vsix
+code --install-extension plantuml-anywhere-0.2.0.vsix
 ```
 
 ## 設計

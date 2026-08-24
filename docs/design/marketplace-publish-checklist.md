@@ -17,7 +17,7 @@
 
 ### 1. リポジトリの公開範囲変更
 
-- [ ] `t29mato/plantuml-web` リポジトリを private → public に変更するか判断する
+- [ ] `t29mato/plantuml-anywhere` リポジトリを private → public に変更するか判断する
       (Marketplace公開にリポジトリのpublic化は必須ではないが、README内の画像リンク
       ([`spikes/class-diagram.png`](../../spikes/class-diagram.png) 等)がGitHub経由で
       正しく表示されるためにはpublicである必要がある)
@@ -26,7 +26,7 @@
 
 - [ ] [Azure DevOps](https://dev.azure.com/) にサインインする(Microsoftアカウント)
 - [ ] Organization設定 → Personal Access Tokens → New Token
-  - Name: 任意(例: `vsce-publish-plantuml-web`)
+  - Name: 任意(例: `vsce-publish-plantuml-anywhere`)
   - Organization: `All accessible organizations`
   - Scopes: `Marketplace` → `Manage`
 - [ ] 発行されたPATを安全な場所に保存する(再表示不可のため)
@@ -35,8 +35,8 @@
 
 - [ ] [https://marketplace.visualstudio.com/manage](https://marketplace.visualstudio.com/manage) にアクセス
 - [ ] Publisher ID を作成する。**`package.json` の `publisher` フィールド
-      (`plantuml-web-poc`)と一致させる必要がある**。既にこの名前で作成済みでない場合、
-      `plantuml-web-poc` が空いているか確認し、空いていなければ `package.json` の
+      (`plantuml-anywhere-poc`)と一致させる必要がある**。既にこの名前で作成済みでない場合、
+      `plantuml-anywhere-poc` が空いているか確認し、空いていなければ `package.json` の
       `publisher` を実際に取得したIDに合わせて変更すること
 - [ ] Publisher名・説明・アイコン等のプロフィールを整える(任意)
 
@@ -64,9 +64,9 @@ npx vsce publish 0.1.0
 
 ### 6. 公開後の確認
 
-- [ ] Marketplaceページ([https://marketplace.visualstudio.com/items?itemName=<publisher>.plantuml-web](https://marketplace.visualstudio.com/items)) が正しく表示されるか確認
+- [ ] Marketplaceページ([https://marketplace.visualstudio.com/items?itemName=<publisher>.plantuml-anywhere](https://marketplace.visualstudio.com/items)) が正しく表示されるか確認
 - [ ] README内の画像(`spikes/class-diagram.png`)が正しく表示されるか確認
-- [ ] 実際に `code --install-extension <publisher>.plantuml-web` でインストールし、動作確認する
+- [ ] 実際に `code --install-extension <publisher>.plantuml-anywhere` でインストールし、動作確認する
 - [ ] **github.dev / vscode.dev 上で実際に拡張機能をインストールし、`.puml` を開いてプレビューが表示されるか確認する。**
       sideloadができないため、これがWeb Extensionとしての最初の実機確認になる
       (「Web Extensionとして構成しているので動く設計」と「実際にgithub.devで確認した」は
@@ -75,7 +75,7 @@ npx vsce publish 0.1.0
 ## Publisher差し替えについて(補足・再確認)
 
 上記「3. VS Code Marketplace Publisherの作成」のとおり、現在の `package.json` の
-`publisher: "plantuml-web-poc"` は実在しないプレースホルダーである。実際のPublisher作成は
+`publisher: "plantuml-anywhere-poc"` は実在しないプレースホルダーである。実際のPublisher作成は
 人間(オーナー)の作業であり、ワーカー側では作成しない。**Publisher作成後、
 そのIDと `package.json` の `publisher` フィールドが一致していることを公開前に必ず確認し、
 一致しない場合はここで `publisher` フィールドを実際に取得したIDへ差し替えること。**
