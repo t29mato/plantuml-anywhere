@@ -12,7 +12,7 @@ import * as vscode from "vscode";
  * その結果は WebviewPreviewPresenter が ExtensionMode.Test のときだけ書き出す
  * test-preview-outcome.json を読んで検証する。
  */
-const EXTENSION_ID = "plantuml-web-poc.plantuml-web";
+const EXTENSION_ID = "plantuml-anywhere-poc.plantuml-anywhere";
 const EXPECTED_SVG_MARKERS = ["<svg", "Animal", "Dog", "Engine"];
 
 export async function run(): Promise<void> {
@@ -29,7 +29,7 @@ export async function run(): Promise<void> {
   const ext = vscode.extensions.getExtension(EXTENSION_ID);
   assert(!!ext, `extension '${EXTENSION_ID}' not found`);
 
-  await vscode.commands.executeCommand("plantuml-web.preview");
+  await vscode.commands.executeCommand("plantuml-anywhere.preview");
   assert(!!ext!.isActive, "extension did not activate after running the preview command");
 
   // onDidOpenTextDocument/コマンド → ShowPreviewUseCase → WebviewへのpostMessage往復 →

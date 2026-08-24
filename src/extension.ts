@@ -32,7 +32,7 @@ export function activate(context: vscode.ExtensionContext): void {
   };
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("plantuml-web.preview", async () => {
+    vscode.commands.registerCommand("plantuml-anywhere.preview", async () => {
       const editor = vscode.window.activeTextEditor;
       if (editor) {
         await showPreview(editor.document.uri);

@@ -71,7 +71,7 @@ content scriptを保持していた可能性が高い**(確証はない)。以�
 - `npm run build:browser-extension`(`esbuild.browser-extension.mjs`)で
   `browser-extension/dist/renderer.js` をビルド
 - `npm run package:browser-extension`(`scripts/package-browser-extension.sh`)で
-  配布に必要なファイルだけをzip化(`plantuml-web-browser-extension-<version>.zip`)。
+  配布に必要なファイルだけをzip化(`plantuml-anywhere-browser-extension-<version>.zip`)。
   sourcemapは含めない
 - GitHub Releaseにzipを添付する運用とした(タグ作成・Release発行はCLAUDE.mdで
   ワーカーに許可されている操作。Chrome Web Storeへの公開・.crxでの配布は行わない)

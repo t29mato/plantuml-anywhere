@@ -16,6 +16,6 @@
 
   const rendererUrl = chrome.runtime.getURL("dist/renderer.js");
   import(rendererUrl).catch((err) => {
-    console.error("[plantuml-web] failed to load renderer:", err);
+    console.error("[plantuml-anywhere] failed to load renderer:", err);
   });
 })();

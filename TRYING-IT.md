@@ -6,8 +6,8 @@
 ## 事前準備(共通)
 
 ```sh
-git clone https://github.com/t29mato/plantuml-web.git
-cd plantuml-web
+git clone https://github.com/t29mato/plantuml-anywhere.git
+cd plantuml-anywhere
 npm install
 ```
 
@@ -17,7 +17,7 @@ npm install
 
 ### 1. `.vsix` を用意する
 
-このリポジトリには、すぐ試せるように `.vsix` ファイル(`plantuml-web-0.1.4.vsix`)を
+このリポジトリには、すぐ試せるように `.vsix` ファイル(`plantuml-anywhere-0.2.0.vsix`)を
 同梱しています。**ビルドせずそのまま次のステップに進んで構いません。**
 
 自分でビルドし直したい場合は:
@@ -29,7 +29,7 @@ npm run package
 ### 2. インストールする
 
 ```sh
-code --install-extension plantuml-web-0.1.4.vsix
+code --install-extension plantuml-anywhere-0.2.0.vsix
 ```
 
 ### 3. `.puml` ファイルを開く
@@ -53,7 +53,7 @@ code test-fixtures/sample.puml
 ### アンインストールする場合
 
 ```sh
-code --uninstall-extension plantuml-web-poc.plantuml-web
+code --uninstall-extension plantuml-anywhere-poc.plantuml-anywhere
 ```
 
 ---
@@ -83,15 +83,15 @@ npm run try:web
 
 ### 1. 拡張機能を用意する
 
-このリポジトリの [Releases](https://github.com/t29mato/plantuml-web/releases) から
-`plantuml-web-browser-extension-<version>.zip` をダウンロードし、任意の場所に**解凍**
+このリポジトリの [Releases](https://github.com/t29mato/plantuml-anywhere/releases) から
+`plantuml-anywhere-browser-extension-<version>.zip` をダウンロードし、任意の場所に**解凍**
 してください(zipファイルのままでは読み込めません)。
 
 privateリポジトリのため、他マシンからは `gh` (GitHub CLI) で認証済みの状態で取得できます:
 
 ```sh
-gh release download --repo t29mato/plantuml-web --pattern "plantuml-web-browser-extension-*.zip"
-unzip plantuml-web-browser-extension-*.zip -d plantuml-web-browser-extension
+gh release download --repo t29mato/plantuml-anywhere --pattern "plantuml-anywhere-browser-extension-*.zip"
+unzip plantuml-anywhere-browser-extension-*.zip -d plantuml-anywhere-browser-extension
 ```
 
 自分でビルドする場合:
@@ -99,7 +99,7 @@ unzip plantuml-web-browser-extension-*.zip -d plantuml-web-browser-extension
 ```sh
 npm run package:browser-extension
 ```
-(`plantuml-web-browser-extension-<version>.zip` がリポジトリ直下に生成されます。
+(`plantuml-anywhere-browser-extension-<version>.zip` がリポジトリ直下に生成されます。
 拡張機能フォルダそのものは `browser-extension/` です)
 
 ### 2. ブラウザに読み込む
@@ -116,7 +116,7 @@ npm run package:browser-extension
 アクセスできないため、手動で許可する必要があります):
 
 1. `chrome://extensions`(または `brave://extensions`)を開く
-2. この拡張機能(PlantUML Local Preview)の「詳細」を開く
+2. この拡張機能(PlantUML Anywhere)の「詳細」を開く
 3. 「ファイルのURLへのアクセスを許可する」のトグルをONにする
 
 ### 4. `.puml` ファイルを開く
