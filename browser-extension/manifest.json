@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "PlantUML Anywhere (PoC)",
-  "version": "0.2.0",
+  "name": "PlantUML Anywhere",
+  "version": "0.2.1",
   "description": "Preview local .puml/.plantuml files directly in the browser. No server, no upload, no install of Java/Graphviz.",
   "icons": {
     "128": "icon.png"
