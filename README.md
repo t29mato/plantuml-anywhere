@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/brand/icon-256.png" alt="PlantUML Anywhere logo" height="96">
+</p>
+
 # PlantUML Anywhere
 
 **Install it and your PlantUML diagrams just work — no Java, no Graphviz, no server. Runs in github.dev too.**
@@ -47,7 +51,7 @@ To package and install a local `.vsix`:
 
 ```sh
 npx @vscode/vsce package
-code --install-extension plantuml-anywhere-0.2.2.vsix
+code --install-extension plantuml-anywhere-0.2.3.vsix
 ```
 
 ## Design

@@ -18,7 +18,10 @@ rm -f browser-extension/dist/renderer.js.map
   content-loader.js \
   background.js \
   onboarding.html \
-  icon.png \
+  icon-16.png \
+  icon-32.png \
+  icon-48.png \
+  icon-128.png \
   dist/renderer.js \
   -x '*.map')
 

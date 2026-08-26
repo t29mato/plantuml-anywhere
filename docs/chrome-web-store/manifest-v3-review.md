@@ -13,9 +13,14 @@ what an automated worker does).
 {
   "manifest_version": 3,
   "name": "PlantUML Anywhere",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "Preview local .puml/.plantuml files directly in the browser. No server, no upload, no install of Java/Graphviz.",
-  "icons": { "128": "icon.png" },
+  "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
   "content_scripts": [
     {
       "matches": ["file:///*.puml", "file:///*.plantuml"],
@@ -116,9 +121,11 @@ fetched separately.
 
 ## Icon
 
-`icon.png` (128×128, used both as the extension icon and the Store's small
-tile icon) is already present at `browser-extension/icon.png` and copied here
-as [`icon-128.png`](icon-128.png) for convenience.
+The extension ships the full icon set the manifest declares
+(`browser-extension/icon-16.png`, `icon-32.png`, `icon-48.png`,
+`icon-128.png` — the official logo designed for this project). The 128×128
+size is copied here as [`icon-128.png`](icon-128.png) for the Store's small
+tile icon.
 
 ## Package
 
@@ -126,5 +133,6 @@ Built via `npm run package:browser-extension`
 (`scripts/package-browser-extension.sh`), which produces
 `plantuml-anywhere-browser-extension-<version>.zip` containing only the
 files the browser needs (`manifest.json`, `content-loader.js`, `background.js`,
-`onboarding.html`, `icon.png`, `dist/renderer.js` — no source maps, no dev
-files). This is the file to upload to the Developer Dashboard.
+`onboarding.html`, `icon-16.png`, `icon-32.png`, `icon-48.png`, `icon-128.png`,
+`dist/renderer.js` — no source maps, no dev files). This is the file to
+upload to the Developer Dashboard.
