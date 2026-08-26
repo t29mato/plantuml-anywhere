@@ -71,7 +71,7 @@ browser-extension/                 ← Chrome拡張機能の配布ルート(src/
                                       PlantUMLソースらしいときだけ dist/renderer.js を動的import
   background.js                     ← 初回インストール時のオンボーディング案内
   onboarding.html
-  icon.png
+  icon-16.png / icon-32.png / icon-48.png / icon-128.png
   dist/renderer.js                  ← ビルド成果物(esbuild.browser-extension.mjs)
 ```
 
