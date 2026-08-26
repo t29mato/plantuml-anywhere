@@ -1,9 +1,8 @@
-# 試してみる (TRYING IT)
+# Trying It Out
 
-このドキュメントは、この拡張機能を**あなたの手元で今すぐ試す**ための手順です。
-デスクトップ版VS Codeとブラウザ版VS Codeの2通りを説明します。
+This is a copy-paste guide to try the extension right now, in three ways: desktop VS Code, browser-based VS Code, and the standalone Chrome/Brave extension.
 
-## 事前準備(共通)
+## Setup (all paths)
 
 ```sh
 git clone https://github.com/t29mato/plantuml-anywhere.git
@@ -13,44 +12,39 @@ npm install
 
 ---
 
-## A. デスクトップ版VS Codeで試す
+## A. Desktop VS Code
 
-### 1. `.vsix` を用意する
+### 1. Get the `.vsix`
 
-このリポジトリには、すぐ試せるように `.vsix` ファイル(`plantuml-anywhere-0.2.1.vsix`)を
-同梱しています。**ビルドせずそのまま次のステップに進んで構いません。**
+This repo ships a ready-to-install `.vsix` (`plantuml-anywhere-0.2.2.vsix`), so you can skip straight to installing it.
 
-自分でビルドし直したい場合は:
+To build it yourself instead:
 
 ```sh
 npm run package
 ```
 
-### 2. インストールする
+### 2. Install it
 
 ```sh
-code --install-extension plantuml-anywhere-0.2.1.vsix
+code --install-extension plantuml-anywhere-0.2.2.vsix
 ```
 
-### 3. `.puml` ファイルを開く
+### 3. Open a `.puml` file
 
-サンプルファイルが `test-fixtures/sample.puml` にあります。
+A sample is included at `test-fixtures/sample.puml`.
 
 ```sh
 code test-fixtures/sample.puml
 ```
 
-### 4. プレビューを表示する
+### 4. Preview it
 
-コマンドパレット(`Cmd+Shift+P` / `Ctrl+Shift+P`)を開き、`PlantUML: Preview` を実行してください。
-右側にWebviewが開き、クラス図が表示されます。
+Open the command palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run `PlantUML: Preview`. A webview opens next to your editor with the rendered diagram.
 
-> **補足**: VS Codeを起動した直後(拡張機能がまだ有効化される前)に `.puml` を開いた場合、
-> 自動プレビューが発火しないことがあります(拡張の有効化タイミングによる既知の挙動。
-> 詳細は `docs/design/step2-vscode-extension-design.md` 参照)。**確実に試すには、
-> 上記のとおりコマンドパレットから `PlantUML: Preview` を明示的に実行してください。**
+> **Tip**: if you open a `.puml` file right after VS Code starts, the extension may not have activated yet. Run `PlantUML: Preview` from the command palette to trigger it explicitly.
 
-### アンインストールする場合
+### Uninstalling
 
 ```sh
 code --uninstall-extension plantuml-anywhere-poc.plantuml-anywhere
@@ -58,87 +52,64 @@ code --uninstall-extension plantuml-anywhere-poc.plantuml-anywhere
 
 ---
 
-## B. ブラウザ版VS Code(vscode.dev / github.dev相当)をローカルで試す
+## B. Browser-based VS Code (vscode.dev / github.dev style)
 
-VS Code Web Extensionはローカルの `.vsix` を直接読み込む(sideloadする)ことができない
-仕組みのため、実際の github.dev / vscode.dev で試すには一度Marketplaceへの公開が必要です
-(現時点では未公開)。ただし、**同じ「ブラウザ版VS Code」の挙動をローカルで再現して試す**
-ことができます。
+VS Code Web Extensions can't be sideloaded, so trying this on the real github.dev/vscode.dev requires a Marketplace listing (not published yet). You can still run the same browser-based VS Code locally:
 
 ```sh
 npm run try:web
 ```
 
-実行するとブラウザが自動的に開き、`test-fixtures` フォルダを開いた状態のVS Code Web
-(ブラウザ版)が起動します。エクスプローラーから `sample.puml` を開き、コマンドパレット
-(`Cmd+Shift+P` / `Ctrl+Shift+P`)から `PlantUML: Preview` を実行してください。
+This opens a browser with VS Code Web pointed at the `test-fixtures` folder. Open `sample.puml` from the explorer, then run `PlantUML: Preview` from the command palette (`Cmd+Shift+P` / `Ctrl+Shift+P`).
 
 ---
 
-## C. Chrome / Brave 拡張機能で試す
+## C. Chrome / Brave extension
 
-ローカルの `.puml` / `.plantuml` ファイルを `file://` で直接開いたときに、その場で
-プレビューする単体のブラウザ拡張機能です(VS Code不要)。Chrome Web Storeには公開して
-いないため、「パッケージ化されていない拡張機能」として手動で読み込みます。
+A standalone browser extension that previews a local `.puml` / `.plantuml` file the moment you open it with `file://` — no VS Code needed. It isn't published on the Chrome Web Store yet, so you'll load it as an unpacked extension.
 
-### 1. 拡張機能を用意する
+### 1. Get the extension
 
-このリポジトリの [Releases](https://github.com/t29mato/plantuml-anywhere/releases) から
-`plantuml-anywhere-browser-extension-<version>.zip` をダウンロードし、任意の場所に**解凍**
-してください(zipファイルのままでは読み込めません)。
+Download `plantuml-anywhere-browser-extension-<version>.zip` from this repo's [Releases](https://github.com/t29mato/plantuml-anywhere/releases) and **unzip** it somewhere (loading the zip directly won't work).
 
-privateリポジトリのため、他マシンからは `gh` (GitHub CLI) で認証済みの状態で取得できます:
+From another machine, since this is a private repo, the GitHub CLI works too:
 
 ```sh
 gh release download --repo t29mato/plantuml-anywhere --pattern "plantuml-anywhere-browser-extension-*.zip"
 unzip plantuml-anywhere-browser-extension-*.zip -d plantuml-anywhere-browser-extension
 ```
 
-自分でビルドする場合:
+Or build it yourself:
 
 ```sh
 npm run package:browser-extension
 ```
-(`plantuml-anywhere-browser-extension-<version>.zip` がリポジトリ直下に生成されます。
-拡張機能フォルダそのものは `browser-extension/` です)
+(this drops `plantuml-anywhere-browser-extension-<version>.zip` in the repo root; the extension folder itself is `browser-extension/`)
 
-### 2. ブラウザに読み込む
+### 2. Load it in your browser
 
-1. `chrome://extensions`(Braveの場合は `brave://extensions`)を開く
-2. 右上の「デベロッパーモード」をONにする
-3. 「パッケージ化されていない拡張機能を読み込む」をクリックし、解凍したフォルダ
-   (または `browser-extension/` フォルダ)を選択する
+1. Open `chrome://extensions` (`brave://extensions` on Brave)
+2. Turn on "Developer mode" in the top right
+3. Click "Load unpacked" and select the folder you unzipped (or `browser-extension/`)
 
-### 3. **重要: ファイルのURLへのアクセスを許可する**
+### 3. **Important: allow file URL access**
 
-初回インストール時、案内ページが自動的に開きます。**この手順を飛ばすとプレビューが
-一切表示されません**(ブラウザの仕様上、拡張機能はデフォルトで `file://` ページに
-アクセスできないため、手動で許可する必要があります):
+A setup page opens automatically on first install. **Skipping this means the preview never appears** — browsers block extensions from accessing `file://` pages by default, so this needs a manual opt-in:
 
-1. `chrome://extensions`(または `brave://extensions`)を開く
-2. この拡張機能(PlantUML Anywhere)の「詳細」を開く
-3. 「ファイルのURLへのアクセスを許可する」のトグルをONにする
+1. Open `chrome://extensions` (or `brave://extensions`)
+2. Open "Details" on this extension (PlantUML Anywhere)
+3. Turn on "Allow access to file URLs"
 
-### 4. `.puml` ファイルを開く
+### 4. Open a `.puml` file
 
-`test-fixtures/sample.puml` をブラウザにドラッグ&ドロップするか、`Ctrl/Cmd+O` で開いて
-ください。その場でクラス図がプレビュー表示されます。
+Drag `test-fixtures/sample.puml` into your browser, or open it with `Ctrl/Cmd+O`. The diagram renders in place.
 
-> **無関係なファイルは重くならない**: この拡張機能は `.puml`/`.plantuml` 以外の
-> ローカルファイル(HTML・PDF・画像等)には一切介入しません
-> (`docs/design/browser-extension-v2-lazy-loading.md` 参照)。
+> **Other files stay untouched**: this extension never activates for local files other than `.puml`/`.plantuml` (HTML, PDF, images, etc. are left alone).
 
 ---
 
-## うまく動かないとき
+## Troubleshooting
 
-- 既知の制約(ローカル `!include` 非対応、スプライトライブラリ非同梱等)は
-  [README](README.md#既知の制約poc限定) を参照してください。
-- ブラウザ版でワークベンチの見た目が崩れる(CSSが読み込まれない)場合があります。
-  これは `@vscode/test-web` のESMモードに関する既知の環境依存の事象で、拡張機能自体の
-  不具合ではありません。詳細は
-  [`docs/design/step2-vscode-extension-design.md`](docs/design/step2-vscode-extension-design.md)
-  を参照してください。
-- その他の検証結果・既知の落とし穴は
-  [`docs/design/vsix-install-verification.md`](docs/design/vsix-install-verification.md)
-  にまとまっています。
+- Known limitations (no local `!include`, no bundled sprite libraries, etc.) are listed in the [README](README.md#known-limitations).
+- The browser-based VS Code session can occasionally look unstyled (missing CSS). That's a known quirk of `@vscode/test-web`'s ESM mode, not a bug in this extension.
+- If something else doesn't work, please open an issue.

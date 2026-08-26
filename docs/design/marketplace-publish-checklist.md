@@ -70,7 +70,7 @@ npx vsce publish 0.1.0
 - [ ] **github.dev / vscode.dev 上で実際に拡張機能をインストールし、`.puml` を開いてプレビューが表示されるか確認する。**
       sideloadができないため、これがWeb Extensionとしての最初の実機確認になる
       (「Web Extensionとして構成しているので動く設計」と「実際にgithub.devで確認した」は
-      異なるため。README「検証状況」セクション参照)。確認できたらREADMEの検証状況を更新する。
+      異なるため。README「Status」セクション参照)。確認できたらREADMEのStatusセクションを更新する。
 
 ## Publisher差し替えについて(補足・再確認)
 

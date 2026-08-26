@@ -9,7 +9,7 @@ test-fixtures/test-preview-outcome.json
 *.vsix
 # TRYING-IT.md からオーナーがビルドせずすぐ試せるように、リリース用として例外的に
 # 現行バージョンの.vsixのみコミット対象にする(バージョンを上げたら差し替えること)。
-!plantuml-anywhere-0.2.1.vsix
+!plantuml-anywhere-0.2.2.vsix
 # Chrome/Brave拡張機能のzip。.vsixと違いこちらはリポジトリにコミットせず、
 # GitHub Releaseに添付する運用(TRYING-IT.md参照)。
 *.zip

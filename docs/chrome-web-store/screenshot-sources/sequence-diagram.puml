@@ -1,0 +1,16 @@
+@startuml
+skinparam sequenceMessageAlign center
+actor User
+participant Browser
+participant "PlantUML Anywhere" as Ext
+participant "@plantuml/core (WASM)" as Core
+
+User -> Browser: open diagram.puml
+Browser -> Ext: detect .puml content
+Ext -> Core: render(source)
+Core --> Ext: SVG
+Ext -> Browser: show preview
+Browser --> User: diagram rendered
+
+note over Core: Runs fully offline.\nNo server, no upload.
+@enduml

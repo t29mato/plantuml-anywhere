@@ -1,73 +1,68 @@
 # PlantUML Anywhere
 
-**インストールするだけでPlantUMLが見える。Java不要・Graphviz不要・サーバー不要。github.dev でも動く。**
+**Install it and your PlantUML diagrams just work — no Java, no Graphviz, no server. Runs in github.dev too.**
 
-`.puml` / `.plantuml` ファイルを開いてコマンドを実行すると、Webviewにクラス図・シーケンス図等のプレビューが表示されます。追加のランタイムインストールや外部サーバーへの通信は一切不要です。
+Open a `.puml` / `.plantuml` file, run one command, and get a live preview of your class diagrams, sequence diagrams, and more, right inside a VS Code webview. No runtime to install, no network calls, nothing leaves your machine.
 
 ![class-diagram-example](spikes/class-diagram.png)
 
-*(上記は実際にレンダリングされたクラス図の例です)*
+*(an actual diagram rendered by the extension)*
 
-**今すぐ手元で試したい方へ**: コピペで動く手順を [`TRYING-IT.md`](TRYING-IT.md) にまとめています(デスクトップ版VS Code・ブラウザ版VS Code・Chrome/Brave拡張機能の3通り)。
+**Want to try it right now?** Copy-paste instructions for desktop VS Code, browser-based VS Code, and the standalone Chrome/Brave extension are in [`TRYING-IT.md`](TRYING-IT.md).
 
-## なぜこれが可能か
+## Status
 
-既存の最大手拡張機能 `jebbs.plantuml`(360万インストール)は、レンダリングにJavaとGraphvizのインストールを必須とします(または外部のPlantUMLサーバーへのネットワーク送信が必要です)。VS Code **Web Extension**(vscode.dev / github.dev のようにブラウザ内で動くVS Code)は子プロセスを起動できないため、この方式は原理的に移植できません。
+Verified working on desktop VS Code and in a local browser-based VS Code session. Not yet verified on live github.dev/vscode.dev, since sideloading isn't possible there and it requires a Marketplace listing (not published yet).
 
-本拡張機能は `@plantuml/core`(PlantUMLエンジンをTeaVMでJavaScriptに、レイアウトエンジン(Graphviz)をWASMにコンパイルしたもの、MITライセンス)を使い、レンダリングをブラウザ内で完結させます。ファイルの内容がサーバーに送信されることはありません。
+## How it works
 
-- **Web Extension として構成**しているため、デスクトップ版VS Code・ブラウザ版VS Code(vscode.dev / github.dev)いずれでも動作する設計です(`package.json` の `browser` エントリのみ。`main` エントリは不要)。
-- パッケージサイズは圧縮後 **1.94MB** と軽量です。
-- VS Code不要で使いたい場合向けに、同じレンダリングエンジンを使った**単体のChrome/Brave拡張機能**(`browser-extension/`)も用意しています。`.puml`ファイルを`file://`で直接開くとその場でプレビューされます。
+Most PlantUML extensions render by shelling out to Java + Graphviz, or by sending your diagram source to a remote server. Neither works in a VS Code **Web Extension** (the kind that runs inside vscode.dev / github.dev), since browsers can't spawn subprocesses.
 
-### 検証状況(正直な現状)
+PlantUML Anywhere renders everything in the browser instead, using [`@plantuml/core`](https://www.npmjs.com/package/@plantuml/core), the PlantUML engine compiled to JavaScript via TeaVM, with its layout engine (Graphviz) compiled to WebAssembly (MIT licensed). Your diagram source never leaves your machine.
 
-「github.dev でも動く」という主張の裏付けとして、現時点で確認できているものと、まだ確認できていないものを区別して明記します:
+- Ships as a **Web Extension**, so it runs the same way on desktop VS Code and in the browser (vscode.dev / github.dev) — no separate builds needed.
+- **1.94 MB** compressed.
+- Don't need VS Code? The same rendering engine also powers a **standalone Chrome/Brave extension** (`browser-extension/`): open a local `.puml` file directly (`file://`) and it renders in place.
 
-- ✅ **デスクトップ版VS Code**への `.vsix` 実インストールで動作確認済み(実測・エラー0件。[`docs/design/vsix-install-verification.md`](docs/design/vsix-install-verification.md))
-- ✅ **ブラウザ版VS Code**(`@vscode/test-web` によるローカルのヘッドレス実行)での動作確認済み(Webview経由のWASMレンダリング成功。[`docs/design/step2-vscode-extension-design.md`](docs/design/step2-vscode-extension-design.md))
-- ⚠️ **実際の github.dev / vscode.dev 上での動作確認はまだ行っていません。** VS Code Web Extensionは sideload(ローカルの `.vsix` を直接読み込む形でのインストール)ができない仕組みのため、github.dev / vscode.dev で試すには一度 Marketplace に公開する必要があります。「Web Extensionとして構成しているので github.dev で動く設計になっている」ことと、「実際の github.dev で動作確認した」ことは異なる、という点を正直に区別しておきます。
-- 📋 Marketplace公開後、最初に行う作業として github.dev 上での実機確認を予定しています。
+## Usage
 
-## 使い方
+1. Open a `.puml` or `.plantuml` file
+2. Run `PlantUML: Preview` from the command palette (`Cmd/Ctrl+Shift+P`)
+3. The rendered diagram opens in a webview next to your editor
 
-1. `.puml` または `.plantuml` ファイルを開く
-2. コマンドパレット(`Cmd/Ctrl+Shift+P`)から `PlantUML: Preview` を実行する
-3. 右側にWebviewが開き、プレビューが表示される
-
-## 開発者向け: ソースからビルド・実行する
+## Build from source
 
 ```sh
 npm install
 npm run build
 ```
 
-VS Code で本リポジトリを開き、F5(Run Extension)でデバッグ実行するか、`@vscode/test-web` でブラウザ版として起動できます:
+Open this repo in VS Code and press F5 to launch a debug instance, or run it as a browser-based VS Code session with `@vscode/test-web`:
 
 ```sh
-npx @vscode/test-web --extensionDevelopmentPath=. --esm <対象フォルダ>
+npx @vscode/test-web --extensionDevelopmentPath=. --esm <folder>
 ```
 
-`.vsix` パッケージを作ってローカルインストールする場合:
+To package and install a local `.vsix`:
 
 ```sh
 npx @vscode/vsce package
-code --install-extension plantuml-anywhere-0.2.1.vsix
+code --install-extension plantuml-anywhere-0.2.2.vsix
 ```
 
-## 設計
+## Design
 
-クリーンアーキテクチャに基づき、ドメイン層(`src/domain`)・アプリケーション層(`src/application`)は VS Code API にも `@plantuml/core` にも依存しません。詳細は [`docs/design/architecture.md`](docs/design/architecture.md) を参照してください。
+The domain (`src/domain`) and application (`src/application`) layers follow clean architecture and depend on neither the VS Code API nor `@plantuml/core`. See [`docs/design/architecture.md`](docs/design/architecture.md) for the full layer breakdown.
 
-WASMレンダリングはWebview側(実DOMを持つ)で行い、拡張ホストとは `postMessage` でやり取りします。この設計に至った経緯(拡張ホストのWeb Workerには `window` が無く直接レンダリングできないことが実機検証で判明した経緯)は [`docs/design/step2-vscode-extension-design.md`](docs/design/step2-vscode-extension-design.md) に記録しています。
+WASM rendering happens inside the webview (which has a real DOM) and talks to the extension host over `postMessage`. See [`docs/design/step2-vscode-extension-design.md`](docs/design/step2-vscode-extension-design.md) for the reasoning behind that split.
 
-## 既知の制約(PoCスコープ)
+## Known limitations
 
-- **ローカル `!include` 非対応**: ブラウザ環境ではファイルシステムを直接読めないため、複数ファイルにまたがる `!include` はサポートしていません。実際に存在しないファイルを `!include` すると、ハングや無反応にはならず、`cannot include <ファイル名>` という赤字のエラーメッセージが図として表示されます(実測結果は [`docs/design/known-gaps-verification.md`](docs/design/known-gaps-verification.md) 参照)。
-- **スプライトライブラリ非同梱**: AWS/material/tupadr3等の重いアイコンセットは同梱していません。これらを使う `!include <awslib/...>` 等を書くと、同様にハングせず `Fatal parsing error` という赤字エラーが表示されます。
-- **エクスポート・スニペット・多言語対応・マルチページ図は未実装**: 本PoCのスコープは「開いてプレビューが出る」ことに限定しています。
-- **ライブ更新なし**: ファイル編集中の自動再レンダリングは行わず、コマンド実行時点の内容を1回レンダリングします。
+- **No local `!include`**: browser environments can't read the filesystem directly, so `!include` across multiple files isn't supported. Referencing a missing file shows a clear "cannot include ..." error in the diagram instead of hanging.
+- **No bundled sprite libraries**: heavyweight icon sets (AWS, Material, tupadr3, ...) aren't included; using them shows a parsing error instead of rendering.
+- **No export, snippets, localization, or multi-page diagrams.** The scope is "open a file, see the preview."
+- **No live reload**: the diagram renders once, when you run the command; it doesn't auto-update as you type.
 
-## ライセンス
+## License
 
-MIT. 依存する `@plantuml/core` は v1.2026.6 以降がMIT(それ以前のバージョンはGPL-3.0-or-later)。本リポジトリは `1.2026.6` に固定しています。ライセンス調査の詳細は [`docs/design/spike-report.md`](docs/design/spike-report.md) を参照してください。
+MIT. This project depends on `@plantuml/core`, which is MIT-licensed from v1.2026.6 onward (earlier versions are GPL-3.0-or-later) — this repo is pinned to `1.2026.6`.
