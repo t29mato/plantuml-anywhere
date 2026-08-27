@@ -15,14 +15,20 @@ const vscodeApi = acquireVsCodeApi();
 const renderer = new PlantUmlCoreRenderer();
 
 window.addEventListener("message", (event: MessageEvent) => {
-  const message = event.data as { type?: string; lines?: string[] };
+  const message = event.data as { type?: string; lines?: string[]; originLines?: number[] };
   if (message?.type !== "render") {
     return;
   }
-  const source = new DiagramSource(message.lines ?? []);
+  const source = new DiagramSource(message.lines ?? [], message.originLines);
   renderer.render(source).then((result) => {
     if (result instanceof RenderedSvg) {
-      vscodeApi.postMessage({ type: "render-result", ok: true, svg: result.svg, note: result.note });
+      vscodeApi.postMessage({
+        type: "render-result",
+        ok: true,
+        svg: result.svg,
+        note: result.note,
+        syntaxErrorLine: result.syntaxErrorLine,
+      });
     } else {
       vscodeApi.postMessage({ type: "render-result", ok: false, error: result.message });
     }

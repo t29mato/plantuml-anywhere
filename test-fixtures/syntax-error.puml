@@ -1,0 +1,3 @@
+@startuml
+totallyBogusKeyword Foo Bar
+@enduml

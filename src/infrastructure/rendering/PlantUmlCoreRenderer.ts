@@ -10,6 +10,7 @@ import {
   injectSkinparam,
   DEFAULT_PLANTUML_FONT_SIZE,
 } from "./tooLargeFallback.js";
+import { detectSyntaxErrorLine } from "./syntaxErrorDetection.js";
 
 /** "too large"エラー時の縮小再試行の最大回数。無限ループ防止。 */
 const MAX_SHRINK_ATTEMPTS = 3;
@@ -48,6 +49,17 @@ export class PlantUmlCoreRenderer implements DiagramRenderPort {
     // 1回目: 元のソースのまま試す
     const firstAttempt = await this.renderOnce(originalLines);
     if (firstAttempt instanceof RenderedSvg) {
+      // PlantUMLは構文エラーでも例外を投げず、エラー内容を書き込んだSVG画像を
+      // 成功として返す(docs/design/syntax-error-diagnostics.md参照)。
+      // ここで検出し、!include展開があっても元ファイル上の正しい行番号に変換する。
+      const syntaxError = detectSyntaxErrorLine(firstAttempt.svg);
+      if (syntaxError) {
+        return new RenderedSvg(
+          firstAttempt.svg,
+          undefined,
+          source.originalLineNumber(syntaxError.line)
+        );
+      }
       return firstAttempt;
     }
 

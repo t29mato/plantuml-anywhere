@@ -55,6 +55,59 @@ export async function run(): Promise<void> {
     "[e2e] PASS",
     JSON.stringify({ svgLength: outcome.svg.length, previewLatencyMs, webviewOpened })
   );
+
+  await runSyntaxErrorDiagnosticsCheck(folder);
+}
+
+/**
+ * 構文エラー検出→VS Code診断(Problems パネル・波線)の統合確認。
+ * docs/design/syntax-error-diagnostics.md参照。
+ */
+async function runSyntaxErrorDiagnosticsCheck(folder: vscode.WorkspaceFolder): Promise<void> {
+  const fileUri = vscode.Uri.joinPath(folder.uri, "syntax-error.puml");
+  const doc = await vscode.workspace.openTextDocument(fileUri);
+  await vscode.window.showTextDocument(doc);
+  await vscode.commands.executeCommand("plantuml-anywhere.preview");
+
+  const outcomeUri = vscode.Uri.joinPath(folder.uri, "test-preview-outcome.json");
+  // 1つ目のsample.pumlのレンダリング結果が既に同じファイルに書き込まれているため、
+  // 単なる存在確認ではなく「syntaxErrorLineを含む新しい内容になった」ことを待つ。
+  const outcome = await waitForOutcomeWithSyntaxErrorLine(outcomeUri, 15000);
+  assert(!!outcome, "timed out waiting for syntax-error outcome");
+  assert(outcome.ok === true, `syntax-error preview did not succeed: ${JSON.stringify(outcome)}`);
+  assert(
+    outcome.syntaxErrorLine === 2,
+    `expected syntaxErrorLine=2 (test-fixtures/syntax-error.puml line 2), got ${outcome.syntaxErrorLine}`
+  );
+
+  const diagnostics = vscode.languages.getDiagnostics(fileUri);
+  assert(diagnostics.length > 0, "expected at least one diagnostic on syntax-error.puml");
+  assert(
+    diagnostics.some((d) => d.range.start.line === 1), // 0始まり = ソースの2行目
+    `expected a diagnostic on line 2 (0-indexed 1), got ranges: ${JSON.stringify(diagnostics.map((d) => d.range.start.line))}`
+  );
+
+  console.log("[e2e] PASS (syntax-error diagnostics)", JSON.stringify({ syntaxErrorLine: outcome.syntaxErrorLine }));
+}
+
+async function waitForOutcomeWithSyntaxErrorLine(
+  uri: vscode.Uri,
+  timeoutMs: number
+): Promise<{ ok: boolean; syntaxErrorLine?: number } | undefined> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const bytes = await vscode.workspace.fs.readFile(uri);
+      const outcome = JSON.parse(new TextDecoder().decode(bytes));
+      if (outcome.syntaxErrorLine !== undefined) {
+        return outcome;
+      }
+    } catch {
+      // ファイル未生成、次のポーリングへ
+    }
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+  return undefined;
 }
 
 function assert(condition: boolean, message: string): asserts condition {

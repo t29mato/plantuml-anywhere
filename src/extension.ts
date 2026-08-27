@@ -23,10 +23,16 @@ export function activate(context: vscode.ExtensionContext): void {
   const panels = new WebviewPanelProvider(context);
   const rendererScriptUri = vscode.Uri.joinPath(context.extensionUri, "dist", "webview-runtime.js");
   const renderer = new WebviewMessageRenderer(panels, rendererScriptUri);
-  const presenter = new WebviewPreviewPresenter(panels, context);
+  // 構文エラー行の診断(Problems パネル・波線)をファイルごとに正しく出すため、
+  // DiagnosticCollection自体は拡張全体で1つ共有する(docs/design/syntax-error-diagnostics.md参照)。
+  const diagnostics = vscode.languages.createDiagnosticCollection("plantuml-anywhere");
+  context.subscriptions.push(diagnostics);
 
   const showPreview = async (uri: vscode.Uri) => {
+    // reader・presenterはどちらも「どのファイルを対象にするか」を持つため、
+    // showPreview呼び出しごとに生成する(rendererはWebviewを共有する側なので使い回す)。
     const reader = new VsCodeWorkspaceFsSourceReader(uri);
+    const presenter = new WebviewPreviewPresenter(panels, context, uri, diagnostics);
     const useCase = new ShowPreviewUseCase(reader, renderer, presenter);
     await useCase.execute();
   };

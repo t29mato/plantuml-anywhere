@@ -27,12 +27,19 @@ export class PageDomPresenter implements PreviewPresenterPort {
   showSuccess(svg: RenderedSvg): void {
     document.title = "PlantUML Preview";
     document.body.innerHTML = "";
-    if (svg.note) {
+    // PlantUMLは構文エラーでも例外を投げず、エラー内容を書き込んだSVG画像を成功として
+    // 返す(docs/design/syntax-error-diagnostics.md参照)。画像自体にも行番号は含まれるが
+    // 小さく読み取りにくいため、ページ上部にも分かりやすい注記を出す。
+    const noteText =
+      svg.syntaxErrorLine !== undefined
+        ? `⚠ 構文エラーを検出しました(${svg.syntaxErrorLine}行目付近)。下の図に埋め込まれた詳細を確認してください。`
+        : svg.note;
+    if (noteText) {
       const note = document.createElement("p");
       note.id = "plantuml-anywhere-note";
       note.style.color = "#666";
       note.style.font = "12px sans-serif";
-      note.textContent = svg.note;
+      note.textContent = noteText;
       document.body.appendChild(note);
     }
     const container = document.createElement("div");
