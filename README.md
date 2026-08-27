@@ -51,7 +51,7 @@ To package and install a local `.vsix`:
 
 ```sh
 npx @vscode/vsce package
-code --install-extension plantuml-anywhere-0.2.3.vsix
+code --install-extension plantuml-anywhere-0.3.0.vsix
 ```
 
 ## Design

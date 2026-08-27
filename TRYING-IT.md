@@ -16,7 +16,7 @@ npm install
 
 ### 1. Get the `.vsix`
 
-This repo ships a ready-to-install `.vsix` (`plantuml-anywhere-0.2.3.vsix`), so you can skip straight to installing it.
+This repo ships a ready-to-install `.vsix` (`plantuml-anywhere-0.3.0.vsix`), so you can skip straight to installing it.
 
 To build it yourself instead:
 
@@ -27,7 +27,7 @@ npm run package
 ### 2. Install it
 
 ```sh
-code --install-extension plantuml-anywhere-0.2.3.vsix
+code --install-extension plantuml-anywhere-0.3.0.vsix
 ```
 
 ### 3. Open a `.puml` file
