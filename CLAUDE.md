@@ -67,7 +67,7 @@
 1. **Graphviz非依存の成否(最重要・スパイクで解消済み)**: PlantUMLのクラス図・コンポーネント図は通常Graphvizが座標計算を行う。ブラウザ環境ではGraphvizバイナリを起動できないため、レイアウト計算をどう賄うかが成否を分ける。検証の結果、`@plantuml/core`(v1.2026.6以降)はGraphviz本体をWASMにコンパイルしたレイアウトエンジンを同梱しており、バイナリ起動なしでクラス図を含むレンダリングが可能なことを確認済み(`docs/design/spike-report.md` 参照)。シーケンス図は元々Graphviz不要なので通って当然であり、判定は必ずクラス図で行うこと。
 2. **バンドルサイズ**: `@plantuml/core` は約10MB(TeaVM/WASMビルドを含む)。VS Code Marketplaceの実用上限とWeb Extensionの起動時間に耐えるかを計測する。
 3. **Webview の CSP と WASM 読み込み**: WASM実行(`WebAssembly.instantiate`)にはWebviewのCSPで `wasm-unsafe-eval` 等の追加許可が必要になる可能性がある。レンダリングを拡張ホスト側で行うかWebview内で行うかを設計判断し、理由を `docs/design/` に記録すること(`docs/design/step2-vscode-extension-design.md` 参照)。
-4. **ローカル `!include`**: ブラウザ環境ではファイルシステムを直接読めないため、`vscode.workspace.fs` を使った自前のincludeプロセッサが必要(`jebbs.plantuml` が独自実装しているのと同じ理由)。PoCではスコープ外だが、実現可能性のメモだけ残す。
+4. **ローカル `!include`**: ブラウザ環境ではファイルシステムを直接読めないため、`vscode.workspace.fs` を使った自前のincludeプロセッサが必要(`jebbs.plantuml` が独自実装しているのと同じ理由)。**VS Code版は実装済み**(相対パスのローカルファイルのみ。`docs/design/include-directive-support.md` 参照)。Chrome/Brave拡張版は`file://`間の`fetch()`の確実性に欠けるため未対応のまま(同ドキュメント参照)。
 5. **スプライトライブラリ**: npmパッケージはAWS/material/tupadr3等の重いスプライトを同梱していない。PoCスコープ外、制約として記録のみ。
 
 ## 関連ドキュメント

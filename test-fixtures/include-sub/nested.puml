@@ -1,0 +1,2 @@
+class Shared2
+Shared1 --> Shared2
