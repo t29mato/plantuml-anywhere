@@ -8,11 +8,20 @@ import type { WebviewPanelProvider } from "./WebviewPanelProvider.js";
  * レンダリング結果(SVG文字列 or エラーメッセージ)をWebviewに最終表示する。
  * この時点ではもうWASMは実行しない(WebviewMessageRendererが既に計算済み)ので、
  * ここのCSPはscript-srcを含めない最小構成でよい。
+ *
+ * `uri`・`diagnostics` は構文エラー検出結果(`RenderedSvg.syntaxErrorLine`)を
+ * VS Codeの診断(Problems パネル・該当行への波線)として表示するために使う
+ * (docs/design/syntax-error-diagnostics.md参照)。プレビュー対象のファイルごとに
+ * 正しい行へ波線を出すため、このクラスは(readerと同様に)ファイルごとに1つ生成する
+ * 前提の設計にしている。`diagnostics` 自体は拡張全体で1つ共有し、`context.subscriptions`
+ * で破棄する。
  */
 export class WebviewPreviewPresenter implements PreviewPresenterPort {
   constructor(
     private readonly panels: WebviewPanelProvider,
-    private readonly context: vscode.ExtensionContext
+    private readonly context: vscode.ExtensionContext,
+    private readonly uri: vscode.Uri,
+    private readonly diagnostics: vscode.DiagnosticCollection
   ) {}
 
   /**
@@ -28,13 +37,39 @@ export class WebviewPreviewPresenter implements PreviewPresenterPort {
   }
 
   showSuccess(svg: RenderedSvg): void {
-    this.render(svg.svg, false, svg.note);
-    this.writeTestOutcomeIfInTestMode({ ok: true, svgLength: svg.svg.length, svg: svg.svg, note: svg.note });
+    if (svg.syntaxErrorLine !== undefined) {
+      this.diagnostics.set(this.uri, [this.buildSyntaxErrorDiagnostic(svg.syntaxErrorLine)]);
+      const note = `⚠ 構文エラーを検出しました(${svg.syntaxErrorLine}行目付近)。詳細は Problems パネル、またはエディタの波線を確認してください。`;
+      this.render(svg.svg, false, note);
+    } else {
+      this.diagnostics.delete(this.uri);
+      this.render(svg.svg, false, svg.note);
+    }
+    this.writeTestOutcomeIfInTestMode({
+      ok: true,
+      svgLength: svg.svg.length,
+      svg: svg.svg,
+      note: svg.note,
+      syntaxErrorLine: svg.syntaxErrorLine,
+    });
   }
 
   showError(error: RenderError): void {
+    this.diagnostics.delete(this.uri);
     this.render(error.message, true);
     this.writeTestOutcomeIfInTestMode({ ok: false, message: error.message });
+  }
+
+  private buildSyntaxErrorDiagnostic(line: number): vscode.Diagnostic {
+    // 行番号は1始まり(PlantUMLソースの数え方)。vscode.Positionは0始まりなので変換する。
+    // 波線を出す範囲は行全体(何桁目が悪いかまではPlantUMLの出力から特定できないため)。
+    const zeroBasedLine = Math.max(0, line - 1);
+    const range = new vscode.Range(zeroBasedLine, 0, zeroBasedLine, Number.MAX_SAFE_INTEGER);
+    return new vscode.Diagnostic(
+      range,
+      "PlantUMLがこの行を構文エラーとして検出しました。",
+      vscode.DiagnosticSeverity.Warning
+    );
   }
 
   private render(content: string, isError: boolean, note?: string): void {

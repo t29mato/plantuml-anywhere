@@ -30,14 +30,21 @@ export class WebviewMessageRenderer implements DiagramRenderPort {
 
     return new Promise((resolve) => {
       const resultSub = panel.webview.onDidReceiveMessage((message: unknown) => {
-        const m = message as { type?: string; ok?: boolean; svg?: string; note?: string; error?: string };
+        const m = message as {
+          type?: string;
+          ok?: boolean;
+          svg?: string;
+          note?: string;
+          syntaxErrorLine?: number;
+          error?: string;
+        };
         if (m?.type !== "render-result") {
           return;
         }
         resultSub.dispose();
         readySub.dispose();
         if (m.ok) {
-          resolve(new RenderedSvg(m.svg ?? "", m.note));
+          resolve(new RenderedSvg(m.svg ?? "", m.note, m.syntaxErrorLine));
         } else {
           resolve(new RenderError(m.error ?? "unknown render error"));
         }
@@ -48,7 +55,11 @@ export class WebviewMessageRenderer implements DiagramRenderPort {
         if (m?.type !== "ready") {
           return;
         }
-        void panel.webview.postMessage({ type: "render", lines: Array.from(source.lines) });
+        void panel.webview.postMessage({
+          type: "render",
+          lines: Array.from(source.lines),
+          originLines: source.originLines ? Array.from(source.originLines) : undefined,
+        });
       });
 
       panel.webview.html = this.buildBootstrapHtml(panel.webview);
