@@ -62,7 +62,7 @@ WASM rendering happens inside the webview (which has a real DOM) and talks to th
 
 ## Known limitations
 
-- **No local `!include`**: browser environments can't read the filesystem directly, so `!include` across multiple files isn't supported. Referencing a missing file shows a clear "cannot include ..." error in the diagram instead of hanging.
+- **`!include` (local files)**: supported in the VS Code extension for relative paths (nested includes work too). Not supported in the Chrome/Brave extension, or for absolute paths, URLs, or bundled-library references (`!include <awslib/...>`) — referencing those shows a clear "cannot include ..." error in the diagram instead of hanging.
 - **No bundled sprite libraries**: heavyweight icon sets (AWS, Material, tupadr3, ...) aren't included; using them shows a parsing error instead of rendering.
 - **No export, snippets, localization, or multi-page diagrams.** The scope is "open a file, see the preview."
 - **No live reload**: the diagram renders once, when you run the command; it doesn't auto-update as you type.

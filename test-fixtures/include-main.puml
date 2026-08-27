@@ -1,0 +1,5 @@
+@startuml
+class Main
+!include include-sub/shared.puml
+Main --> Shared1
+@enduml

@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { ShowPreviewUseCase } from "./application/ShowPreviewUseCase.js";
 import { VsCodeWorkspaceFsSourceReader } from "./infrastructure/vscode/VsCodeWorkspaceFsSourceReader.js";
+import { IncludeResolvingSourceReader } from "./infrastructure/vscode/IncludeResolvingSourceReader.js";
 import { WebviewMessageRenderer } from "./infrastructure/vscode/WebviewMessageRenderer.js";
 import { WebviewPreviewPresenter } from "./infrastructure/vscode/WebviewPreviewPresenter.js";
 import { WebviewPanelProvider } from "./infrastructure/vscode/WebviewPanelProvider.js";
@@ -31,7 +32,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const showPreview = async (uri: vscode.Uri) => {
     // reader・presenterはどちらも「どのファイルを対象にするか」を持つため、
     // showPreview呼び出しごとに生成する(rendererはWebviewを共有する側なので使い回す)。
-    const reader = new VsCodeWorkspaceFsSourceReader(uri);
+    const reader = new IncludeResolvingSourceReader(new VsCodeWorkspaceFsSourceReader(uri), uri);
     const presenter = new WebviewPreviewPresenter(panels, context, uri, diagnostics);
     const useCase = new ShowPreviewUseCase(reader, renderer, presenter);
     await useCase.execute();
