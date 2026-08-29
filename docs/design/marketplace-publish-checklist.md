@@ -19,7 +19,8 @@
 
 - [ ] `t29mato/plantuml-anywhere` リポジトリを private → public に変更するか判断する
       (Marketplace公開にリポジトリのpublic化は必須ではないが、README内の画像リンク
-      ([`spikes/class-diagram.png`](../../spikes/class-diagram.png) 等)がGitHub経由で
+      ([`docs/evidence/readme-hero-vscode-preview.png`](../evidence/readme-hero-vscode-preview.png)・
+      [`docs/brand/icon-256.png`](../brand/icon-256.png) 等)がGitHub経由で
       正しく表示されるためにはpublicである必要がある)
 
 ### 2. Azure DevOps Personal Access Token (PAT) の取得
@@ -65,7 +66,7 @@ npx vsce publish 0.1.0
 ### 6. 公開後の確認
 
 - [ ] Marketplaceページ([https://marketplace.visualstudio.com/items?itemName=<publisher>.plantuml-anywhere](https://marketplace.visualstudio.com/items)) が正しく表示されるか確認
-- [ ] README内の画像(`spikes/class-diagram.png`)が正しく表示されるか確認
+- [ ] README内の画像(`docs/evidence/readme-hero-vscode-preview.png`・`docs/brand/icon-256.png`)が正しく表示されるか確認
 - [ ] 実際に `code --install-extension <publisher>.plantuml-anywhere` でインストールし、動作確認する
 - [ ] **github.dev / vscode.dev 上で実際に拡張機能をインストールし、`.puml` を開いてプレビューが表示されるか確認する。**
       sideloadができないため、これがWeb Extensionとしての最初の実機確認になる
