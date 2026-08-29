@@ -8,11 +8,11 @@
 
 Open a `.puml` / `.plantuml` file, run one command, and get a live preview of your class diagrams, sequence diagrams, and more, right inside a VS Code webview. No runtime to install, no network calls, nothing leaves your machine.
 
-![class-diagram-example](spikes/class-diagram.png)
+![PlantUML Anywhere rendering a class diagram inside VS Code](docs/evidence/readme-hero-vscode-preview.png)
 
-*(an actual diagram rendered by the extension)*
+*(a real screenshot: `.puml` source on the left, the live preview on the right — no editing beyond cropping)*
 
-**Want to try it right now?** Copy-paste instructions for desktop VS Code, browser-based VS Code, and the standalone Chrome/Brave extension are in [`TRYING-IT.md`](TRYING-IT.md).
+**Want to try it right now?** Copy-paste instructions for desktop VS Code, browser-based VS Code, and the standalone Chrome/Brave extension are in [`TRYING-IT.md`](TRYING-IT.md). See [`CHANGELOG.md`](CHANGELOG.md) for what's new in each release.
 
 ## Status
 
@@ -51,7 +51,7 @@ To package and install a local `.vsix`:
 
 ```sh
 npx @vscode/vsce package
-code --install-extension plantuml-anywhere-0.3.0.vsix
+code --install-extension plantuml-anywhere-0.3.1.vsix
 ```
 
 ## Design
